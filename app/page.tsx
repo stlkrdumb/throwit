@@ -149,12 +149,6 @@ export default function Home() {
             </div>
           ))}
         </div>
-
-        {/* Bottom CTA — reinforces the path to the tool */}
-        <div className="flex flex-col items-center gap-3 pt-4 border-t border-slate-900/60 w-full max-w-lg">
-          <p className="text-xs text-slate-500">Ready to send your first encrypted file?</p>
-          <LandingCTA />
-        </div>
       </div>
     </div>
   );
