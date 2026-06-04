@@ -1,7 +1,8 @@
 'use client';
 
-import { Upload } from 'lucide-react';
+import { Upload, Shield } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { useUploadContext } from './context';
 import { UploadProvider } from './provider';
 import type { UploadedFileMeta } from '@/hooks/useFileUpload';
@@ -45,7 +46,6 @@ function ShieldIcon() {
 
 import { IdleState } from './states/idle';
 import { ReadyState } from './states/ready';
-import { LoadingState } from './states/loading';
 import { CompleteState } from './states/complete';
 import { ErrorState } from './states/error';
 
@@ -53,15 +53,12 @@ function UploadCardBody() {
   const { state } = useUploadContext();
   const { step } = state;
 
-  // Each state is an explicit variant — no boolean prop proliferation
+  // Uploading handled inline in UploadCardContent (no card chrome).
   switch (step) {
     case 'idle':
       return <IdleState />;
     case 'selected':
       return <ReadyState />;
-    case 'encrypting':
-    case 'uploading':
-      return <LoadingState />;
     case 'done':
       return <CompleteState />;
     case 'error':
@@ -104,10 +101,40 @@ export {
 export function UploadCard({ onSave }: { onSave?: (upload: UploadedFileMeta) => void }) {
   return (
     <UploadProvider onSave={onSave}>
-      <UploadCardFrame>
-        <UploadCardHeader />
-        <UploadCardBody />
-      </UploadCardFrame>
+      <UploadCardContent />
     </UploadProvider>
+  );
+}
+
+function UploadCardContent() {
+  const { state } = useUploadContext();
+  const { step } = state;
+
+  if (step === 'encrypting' || step === 'uploading') {
+    return (
+      <div className="w-full max-w-md mx-auto flex flex-col items-center gap-4 py-8">
+        {/* Pulsing shield icon */}
+        <div className="relative">
+          <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center animate-pulse">
+            <Shield className="h-6 w-6 text-emerald-400" />
+          </div>
+        </div>
+
+        {/* Medium status text */}
+        <p className="text-sm font-medium text-slate-200">{state.progressMessage}</p>
+
+        {/* Thin progress bar */}
+        <div className="w-full max-w-xs">
+          <Progress value={state.progress} className="h-1 bg-slate-800" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <UploadCardFrame>
+      <UploadCardHeader />
+      <UploadCardBody />
+    </UploadCardFrame>
   );
 }
