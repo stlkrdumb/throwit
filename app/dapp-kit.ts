@@ -12,6 +12,7 @@ export const dAppKit = createDAppKit({
   defaultNetwork: (process.env.NEXT_PUBLIC_SUI_NETWORK ?? 'testnet') as 'testnet' | 'mainnet',
   createClient: (network) => new SuiGrpcClient({ network, baseUrl: GRPC_URLS[network] }),
   autoConnect: true,
+  slushWalletConfig: null, // desktop app, no Slush mobile wallet needed
 });
 
 // Register types for hook type inference

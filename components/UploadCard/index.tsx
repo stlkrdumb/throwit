@@ -18,8 +18,8 @@ function UploadCardHeader() {
   const iconMap: Record<string, React.ReactNode> = {
     idle: <Upload className="h-4 w-4 text-emerald-400" />,
     selected: <Upload className="h-4 w-4 text-emerald-400" />,
-    encrypting: <Loader2 className="h-4 w-4 text-emerald-400 animate-spin" />,
-    uploading: <Loader2 className="h-4 w-4 text-emerald-400 animate-spin" />,
+    encrypting: <Upload className="h-4 w-4 text-emerald-400" />,
+    uploading: <Upload className="h-4 w-4 text-emerald-400" />,
     done: <Check className="h-4 w-4 text-emerald-400" />,
     error: <AlertCircle className="h-4 w-4 text-red-400" />,
   };
@@ -27,19 +27,11 @@ function UploadCardHeader() {
   const statusBadgeMap: Record<string, React.ReactNode> = {
     idle: null,
     selected: null,
-    encrypting: (
-      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-        <Loader2 className="h-3 w-3 animate-spin" /> Uploading…
-      </span>
-    ),
-    uploading: (
-      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-        <Loader2 className="h-3 w-3 animate-spin" /> Uploading…
-      </span>
-    ),
+    encrypting: <Loader2 className="h-3.5 w-3.5 text-emerald-400 animate-spin" />,
+    uploading: <Loader2 className="h-3.5 w-3.5 text-emerald-400 animate-spin" />,
     done: (
       <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-        <Check className="h-3 w-3" /> Complete
+        <Check className="h-3 w-3" /> Done
       </span>
     ),
     error: (
