@@ -1,6 +1,6 @@
 'use client';
 
-import { Upload, Loader2, Check, AlertCircle } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useUploadContext } from './context';
 import { UploadProvider } from './provider';
@@ -12,52 +12,17 @@ import type { UploadedFileMeta } from '@/hooks/useFileUpload';
  * ────────────────────────────────────────────── */
 
 function UploadCardHeader() {
-  const { state } = useUploadContext();
-  const { step } = state;
-
-  const iconMap: Record<string, React.ReactNode> = {
-    idle: <Upload className="h-4 w-4 text-emerald-400" />,
-    selected: <Upload className="h-4 w-4 text-emerald-400" />,
-    encrypting: <Upload className="h-4 w-4 text-emerald-400" />,
-    uploading: <Upload className="h-4 w-4 text-emerald-400" />,
-    done: <Check className="h-4 w-4 text-emerald-400" />,
-    error: <AlertCircle className="h-4 w-4 text-red-400" />,
-  };
-
-  const statusBadgeMap: Record<string, React.ReactNode> = {
-    idle: null,
-    selected: null,
-    encrypting: <Loader2 className="h-3.5 w-3.5 text-emerald-400 animate-spin" />,
-    uploading: <Loader2 className="h-3.5 w-3.5 text-emerald-400 animate-spin" />,
-    done: (
-      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-        <Check className="h-3 w-3" /> Done
-      </span>
-    ),
-    error: (
-      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400">
-        Failed
-      </span>
-    ),
-  };
-
   return (
-    <div className="px-6 py-4 border-b border-slate-800/60 flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center ring-1 ring-emerald-500/20">
-          {iconMap[step] ?? <Upload className="h-4 w-4 text-emerald-400" />}
-        </div>
-        <div>
-          <h2 className="text-sm font-medium text-slate-200">Upload File</h2>
-          <p className="text-xs text-slate-500 flex items-center gap-1.5">
-            <ShieldIcon />
-            End-to-end encrypted · stored on Walrus
-          </p>
-        </div>
+    <div className="px-6 py-4 border-b border-slate-800/60 flex items-center gap-3">
+      <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center ring-1 ring-emerald-500/20 shrink-0">
+        <Upload className="h-4 w-4 text-emerald-400" />
       </div>
-
-      <div className="flex items-center gap-2 text-[10px] font-medium">
-        {statusBadgeMap[step] ?? null}
+      <div>
+        <h2 className="text-sm font-medium text-slate-200">Upload File</h2>
+        <p className="text-xs text-slate-500 flex items-center gap-1.5">
+          <ShieldIcon />
+          End-to-end encrypted · stored on Walrus
+        </p>
       </div>
     </div>
   );

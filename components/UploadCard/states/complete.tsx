@@ -25,6 +25,7 @@ export function CompleteState() {
 
   return (
     <>
+      {/* File info */}
       {fileInfo && (
         <FileInfoRow name={fileInfo.name} size={fileInfo.size} variant="success" />
       )}
@@ -80,7 +81,7 @@ export function CompleteState() {
 
       {/* QR Dialog */}
       <Dialog open={qrOpen} onOpenChange={setQrOpen}>
-        <DialogContent className="border-slate-800 bg-slate-950 max-w-xs p-6 flex flex-col items-center text-center">
+        <DialogContent className="border-slate-800 bg-slate-950 max-w-xs p-6 flex flex-col items-center text-center overscroll-y-contain">
           <DialogHeader className="gap-1 items-center">
             <DialogTitle className="text-sm font-semibold text-slate-100">
               Scan QR Code
