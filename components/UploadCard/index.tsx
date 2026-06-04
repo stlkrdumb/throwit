@@ -1,16 +1,15 @@
 'use client';
 
-import { Upload, Shield } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { useUploadContext } from './context';
 import { UploadProvider } from './provider';
 import type { UploadedFileMeta } from '@/hooks/useFileUpload';
-
-/* ──────────────────────────────────────────────
- * UploadCard — compound component
- * Explicit state variants, shared context interface.
- * ────────────────────────────────────────────── */
+import { IdleState } from './states/idle';
+import { ReadyState } from './states/ready';
+import { LoadingState } from './states/loading';
+import { CompleteState } from './states/complete';
+import { ErrorState } from './states/error';
 
 function UploadCardHeader() {
   return (
@@ -30,47 +29,12 @@ function UploadCardHeader() {
 }
 
 function ShieldIcon() {
-  // Inline to avoid importing just for the icon
   return (
     <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     </svg>
   );
 }
-
-/* ──────────────────────────────────────────────
- * Body — renders the correct state variant
- * Based on Vercel pattern: explicit variant components
- * instead of internal booleans.
- * ────────────────────────────────────────────── */
-
-import { IdleState } from './states/idle';
-import { ReadyState } from './states/ready';
-import { CompleteState } from './states/complete';
-import { ErrorState } from './states/error';
-
-function UploadCardBody() {
-  const { state } = useUploadContext();
-  const { step } = state;
-
-  // Uploading handled inline in UploadCardContent (no card chrome).
-  switch (step) {
-    case 'idle':
-      return <IdleState />;
-    case 'selected':
-      return <ReadyState />;
-    case 'done':
-      return <CompleteState />;
-    case 'error':
-      return <ErrorState />;
-    default:
-      return <IdleState />;
-  }
-}
-
-/* ──────────────────────────────────────────────
- * Compound component for consumer convenience
- * ────────────────────────────────────────────── */
 
 function UploadCardFrame({ children }: { children: React.ReactNode }) {
   return (
@@ -82,64 +46,40 @@ function UploadCardFrame({ children }: { children: React.ReactNode }) {
   );
 }
 
-/* ──────────────────────────────────────────────
- * Public API
- * ────────────────────────────────────────────── */
+function UploadBody() {
+  const { state } = useUploadContext();
+  const { step } = state;
 
-export {
-  UploadCardFrame as Frame,
-  UploadCardHeader as Header,
-  UploadCardBody as Body,
-};
-
-/* ──────────────────────────────────────────────
- * Ready-to-use UploadCard component
- * This is the common case — a complete card with all states.
- * Consumers who need to customize can compose Header/Frame/Body themselves.
- * ────────────────────────────────────────────── */
+  switch (step) {
+    case 'idle': return <IdleState />;
+    case 'selected': return <ReadyState />;
+    case 'done': return <CompleteState />;
+    case 'error': return <ErrorState />;
+    default: return null;
+  }
+}
 
 export function UploadCard({ onSave }: { onSave?: (upload: UploadedFileMeta) => void }) {
   return (
     <UploadProvider onSave={onSave}>
-      <UploadCardContent />
+      <UploadView />
     </UploadProvider>
   );
 }
 
-function UploadCardContent() {
+function UploadView() {
   const { state } = useUploadContext();
   const { step } = state;
 
+  // During upload, show minimal status — no card chrome.
   if (step === 'encrypting' || step === 'uploading') {
-    return (
-      <div className="w-full max-w-md mx-auto flex flex-col items-center gap-4 py-8">
-        {/* Pulsing shield icon */}
-        <div className="relative">
-          <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center animate-pulse">
-            <Shield className="h-6 w-6 text-emerald-400" />
-          </div>
-        </div>
-
-        {/* Status text */}
-        <p className="text-sm font-medium text-slate-200">{state.progressMessage}</p>
-
-        {/* Progress bar — visible track + thin fill */}
-        <div className="w-full max-w-xs">
-          <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-emerald-400 rounded-full transition-all duration-300"
-              style={{ width: `${state.progress}%` }}
-            />
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   return (
     <UploadCardFrame>
       <UploadCardHeader />
-      <UploadCardBody />
+      <UploadBody />
     </UploadCardFrame>
   );
 }
