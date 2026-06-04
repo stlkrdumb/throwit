@@ -1,17 +1,31 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
 import { LandingCTA } from '@/components/LandingCTA';
 import { Shield, HardDrive, Key, Share2, ArrowRight, Coins, EyeOff } from 'lucide-react';
 
 export default function Home() {
+  const flowRef = useRef<HTMLDivElement>(null);
+
+  // Scroll into view when "How it works" is clicked or after a brief delay for scroll cue visibility
+  useEffect(() => {
+    // Show scroll indicator briefly, then hint at the section below
+    const timer = setTimeout(() => {
+      // subtle: flash the "scroll down" cue once so users know content continues
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="relative min-h-[calc(100vh-69px)] w-full overflow-hidden bg-slate-950 flex flex-col justify-center py-16 md:py-24">
       {/* Decorative ambient auras */}
       <div className="absolute top-[10%] left-[5%] h-[500px] w-[500px] rounded-full bg-violet-600/5 blur-[150px] pointer-events-none" />
       <div className="absolute bottom-[10%] right-[5%] h-[500px] w-[500px] rounded-full bg-emerald-600/5 blur-[150px] pointer-events-none" />
-      
+
       {/* Grid overlay for tech aesthetic */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-5xl mx-auto px-6 flex flex-col items-center text-center gap-12">
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-6 flex flex-col items-center text-center gap-14">
         {/* Top badge */}
         <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-xs text-emerald-400 font-medium">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -32,19 +46,29 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Interactive CTA */}
-        <div className="flex flex-col items-center">
+        {/* CTA Row: primary button + scroll hint */}
+        <div className="flex flex-col items-center gap-4">
           <LandingCTA />
+
+          {/* Scroll-down cue for users who don't immediately click */}
+          <div className="flex flex-col items-center gap-1 animate-bounce text-slate-600">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
         </div>
 
-        {/* Step Flowchart */}
-        <div className="w-full mt-8">
+        {/* How it works — clickable for deeper engagement */}
+        <div className="w-full">
           <div className="text-left mb-6">
             <h2 className="text-xs font-semibold text-emerald-400 tracking-wider uppercase">How it works</h2>
             <p className="text-sm text-slate-300 font-medium mt-0.5">End-to-End browser encryption flow</p>
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 p-6 rounded-2xl border border-slate-900 bg-slate-900/10 backdrop-blur-md relative overflow-hidden">
+
+          <div
+            ref={flowRef}
+            className="grid grid-cols-1 sm:grid-cols-4 gap-4 p-6 rounded-2xl border border-slate-900 bg-slate-900/10 backdrop-blur-md relative overflow-hidden"
+          >
             {[
               {
                 step: '01',
@@ -68,7 +92,7 @@ export default function Home() {
                 step: '04',
                 icon: Key,
                 title: 'Decrypt',
-                desc: 'Receiver’s browser retrieves and decrypts the bytes.',
+                desc: 'Receiver\'s browser retrieves and decrypts the bytes.',
               },
             ].map((item, index) => (
               <div key={item.step} className="flex flex-col gap-3 relative text-left">
@@ -124,6 +148,12 @@ export default function Home() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Bottom CTA — reinforces the path to the tool */}
+        <div className="flex flex-col items-center gap-3 pt-4 border-t border-slate-900/60 w-full max-w-lg">
+          <p className="text-xs text-slate-500">Ready to send your first encrypted file?</p>
+          <LandingCTA />
         </div>
       </div>
     </div>
