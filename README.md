@@ -39,7 +39,7 @@ User Browser                          Server (Vercel)                    Walrus 
 |-------|------|-----|
 | Framework | Next.js 16 (App Router) | Turbopack default, React 19, fast builds |
 | Styling | Tailwind CSS v4 + shadcn/ui | Premium UI, zero custom CSS |
-| Wallet | SuiET Wallet Kit | Multi-wallet support, auto-detect |
+| Wallet | `@mysten/dapp-kit-react` | Standard multi-wallet selector modal with custom UI |
 | Blockchain | @mysten/sui (SDK v2) | gRPC client, PTB construction |
 | Storage | @mysten/walrus | Decentralized blob storage on Sui |
 | RPC | Tatum gateway | Qualifies for Tatum Tools prize |
@@ -87,8 +87,8 @@ npm run dev
 ```
 throwit/
 ├── app/
-│   ├── layout.tsx            # Root layout + dynamic WalletKit provider
-│   ├── providers.tsx         # Client-side: QueryClient + WalletKit
+│   ├── layout.tsx            # Root layout + Providers wrapper
+│   ├── providers.tsx         # Client-side: QueryClient + DAppKitProvider + WalletButton
 │   ├── page.tsx              # Landing page (hero + upload card)
 │   └── d/[blobId]/page.tsx  # Download page (fetch → decrypt → download)
 ├── components/

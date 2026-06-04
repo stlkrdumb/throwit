@@ -2,7 +2,11 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { useDropzone, FileRejection } from 'react-dropzone';
-import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import {
+  useDAppKit,
+  useCurrentAccount,
+  useCurrentClient,
+} from '@mysten/dapp-kit-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,10 +14,22 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Toaster, toast } from 'sonner';
-import { Upload, X, FileText, Copy, Check, Clock3, Shield } from 'lucide-react';
+import { Upload, X, FileText, Copy, Check, Clock3, Shield, QrCode } from 'lucide-react';
 import { generateKey, encryptFile, exportKey } from '@/lib/crypto';
-import { uploadBlob } from '@/lib/walrus';
+import { getWalrusWriteClient } from '@/lib/walrus';
 import { buildShareLink } from '@/lib/link';
+import { WalletButton } from '@/components/WalletButton';
+import { config } from '@/lib/config';
+import { QRCodeSVG } from 'qrcode.react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+
 
 const EXPIRY_OPTIONS = [
   { label: '1 Hour', hours: 1 },
@@ -29,19 +45,25 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / 1_073_741_824).toFixed(2)} GB`;
 }
 
-function truncateAddress(address: string): string {
-  return `${address.slice(0, 6)}…${address.slice(-4)}`;
+function hoursToEpochs(hours: number): number {
+  if (hours <= 24) return 1;
+  return Math.ceil(hours / 24);
 }
 
 type Step = 'idle' | 'selected' | 'encrypting' | 'uploading' | 'done' | 'error';
 
 export function UploadCard() {
+  const dAppKit = useDAppKit();
+  const account = useCurrentAccount();
+  const suiClient = useCurrentClient();
+
   const fileRef = useRef<File | null>(null);
   const [step, setStep] = useState<Step>('idle');
   const [fileInfo, setFileInfo] = useState<{ name: string; size: number } | null>(null);
   const [selectedHours, setSelectedHours] = useState(3);
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
+  const [progressMessage, setProgressMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -67,16 +89,17 @@ export function UploadCard() {
     onDropAccepted: () => setError(null),
   });
 
-  // Generate a testnet keypair for signing Walrus transactions.
-  // In production this would use wallet-based signing via PTB.
-  // Fund via: https://faucet.sui.io/
-  const getTestnetSigner = () => new Ed25519Keypair();
-
   const handleUpload = async () => {
     if (!fileInfo || !fileRef.current) return;
+    if (!account) {
+      toast.error('Please connect your wallet first');
+      return;
+    }
+
     setStep('encrypting');
     setError(null);
     setProgress(0);
+    setProgressMessage('Encrypting file locally…');
 
     try {
       // Step 1: Generate key + encrypt file
@@ -88,22 +111,115 @@ export function UploadCard() {
         .replace(/\//g, '_')
         .replace(/=+$/, '');
 
-      setProgress(25);
+      setProgress(15);
+      setProgressMessage('Encoding blob client-side…');
       setStep('uploading');
 
-      // Step 2: Upload to Walrus
-      const signer = getTestnetSigner();
-      const blobId = await uploadBlob(signer, ciphertext, selectedHours);
+      // Step 2: Initialize Walrus Write Flow and encode blob
+      const client = getWalrusWriteClient();
+      const flow = client.writeBlobFlow({ blob: ciphertext });
+      const encoded = await flow.encode();
+      const blobId = encoded.blobId;
+
+      setProgress(30);
+      setProgressMessage('Building registration transaction…');
+
+      // Step 3: Register blob on-chain using the user's wallet
+      const epochs = hoursToEpochs(selectedHours);
+      const registerTx = flow.register({
+        epochs,
+        deletable: true,
+        owner: account.address,
+      });
+
+      setProgress(45);
+      setProgressMessage('Waiting for wallet approval (Registration)…');
+      toast.info('Please approve the registration transaction in your wallet…');
+
+      const registerResult = await dAppKit.signAndExecuteTransaction({
+        transaction: registerTx,
+      });
+
+      if (registerResult.FailedTransaction) {
+        throw new Error(
+          registerResult.FailedTransaction.status.error?.message ??
+            'Registration transaction failed in wallet'
+        );
+      }
+
+      const registerDigest = registerResult.Transaction.digest;
+      setProgressMessage('Waiting for registration transaction indexing…');
+      await suiClient.waitForTransaction({ digest: registerDigest });
+
+      setProgress(60);
+      setProgressMessage('Uploading file slivers to Walrus nodes…');
+
+      // Step 4: Upload encoded slivers to storage nodes
+      await flow.upload({ digest: registerDigest });
+
+      setProgress(75);
+      setProgressMessage('Building certification transaction…');
+
+      // Step 5: Certify blob on-chain using the user's wallet
+      const certifyTx = flow.certify();
+      setProgressMessage('Waiting for wallet approval (Certification)…');
+      toast.info('Please approve the certification transaction in your wallet…');
+
+      const certifyResult = await dAppKit.signAndExecuteTransaction({
+        transaction: certifyTx,
+      });
+
+      if (certifyResult.FailedTransaction) {
+        throw new Error(
+          certifyResult.FailedTransaction.status.error?.message ??
+            'Certification transaction failed in wallet'
+        );
+      }
+
+      const certifyDigest = certifyResult.Transaction.digest;
+      setProgressMessage('Waiting for certification transaction indexing…');
+      await suiClient.waitForTransaction({ digest: certifyDigest });
+
+      setProgress(95);
+      setProgressMessage('Confirming blob on-chain…');
+      const certifiedBlob = await flow.getBlob();
+      const blobObjectId = certifiedBlob.blobObjectId;
 
       setProgress(100);
+      setProgressMessage('Upload complete!');
 
-      // Step 3: Build share link
+      // Save upload metadata to local storage for the dashboard
+      const newUpload = {
+        blobId,
+        blobObjectId,
+        filename: fileInfo.name,
+        size: fileInfo.size,
+        uploadedAt: Date.now(),
+        keyB64,
+        ivB64,
+      };
+
+      const storageKey = `throwit_uploads_${account.address}`;
+      const existing = localStorage.getItem(storageKey);
+      const list = existing ? JSON.parse(existing) : [];
+      list.unshift(newUpload);
+      localStorage.setItem(storageKey, JSON.stringify(list));
+
+      // Notify uploads dashboard to update
+      window.dispatchEvent(new Event('throwit_upload_success'));
+
+      // Step 6: Build share link
       const link = buildShareLink(blobId, keyB64, ivB64, fileInfo.name);
       setShareLink(link);
       setStep('done');
       toast.success('File uploaded and encrypted!');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed. Make sure your testnet wallet has SUI + WAL.');
+      console.error('Upload error:', err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : `Upload failed. Make sure your wallet is on Sui ${config.network} and has SUI.`
+      );
       setStep('error');
     }
   };
@@ -123,6 +239,7 @@ export function UploadCard() {
     setShareLink(null);
     setError(null);
     setProgress(0);
+    setProgressMessage('');
     setCopied(false);
   };
 
@@ -157,7 +274,7 @@ export function UploadCard() {
           }`}
         >
           <input {...getInputProps()} />
-          {(step === 'idle' || step === 'error') && (
+          {(step === 'idle' || step === 'error') ? (
             <div className="flex flex-col items-center gap-3 pointer-events-none">
               <div className="h-14 w-14 rounded-full bg-slate-800/80 flex items-center justify-center ring-1 ring-slate-700/50 group-hover:ring-slate-600/50 transition-all">
                 <Upload className="h-6 w-6 text-slate-400" />
@@ -169,9 +286,9 @@ export function UploadCard() {
                 <p className="text-xs text-slate-500 mt-1 max-w-[200px]">Max 100 MB. Encrypted in browser before upload.</p>
               </div>
             </div>
-          )}
+          ) : null}
 
-          {step === 'selected' && fileInfo && (
+          {((step === 'selected' || step === 'encrypting' || step === 'uploading') && fileInfo) ? (
             <div className="flex items-center gap-3 w-full max-w-sm pointer-events-none">
               <div className="h-10 w-10 rounded-lg bg-slate-800 flex items-center justify-center shrink-0 ring-1 ring-slate-700/50">
                 <FileText className="h-5 w-5 text-slate-400" />
@@ -180,67 +297,87 @@ export function UploadCard() {
                 <p className="text-sm font-medium text-slate-200 truncate">{fileInfo.name}</p>
                 <p className="text-xs text-slate-500">{formatFileSize(fileInfo.size)}</p>
               </div>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); resetUpload(); }}
-                className="h-8 w-8 rounded-lg hover:bg-slate-700 flex items-center justify-center shrink-0 active:scale-95 transition-transform"
-              >
-                <X className="h-4 w-4 text-slate-500" />
-              </button>
+              {step === 'selected' ? (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); resetUpload(); }}
+                  className="h-8 w-8 rounded-lg hover:bg-slate-700 flex items-center justify-center shrink-0 active:scale-95 transition-transform pointer-events-auto"
+                >
+                  <X className="h-4 w-4 text-slate-500" />
+                </button>
+              ) : null}
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Expiry Selector */}
-        {(step === 'selected' || step === 'encrypting' || step === 'uploading') && (
-          <Tabs value={String(selectedHours)} onValueChange={(v) => setSelectedHours(Number(v))}>
-            <TabsList className="w-full grid grid-cols-4 bg-slate-800/40 border border-slate-700/50">
-              {EXPIRY_OPTIONS.map((opt) => (
-                <TabsTrigger
-                  key={opt.label}
-                  value={String(opt.hours)}
-                  className={`text-xs data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-400 text-slate-400 hover:text-slate-300 ring-0 focus-visible:ring-0`}
-                >
-                  {opt.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        )}
+        {(step === 'selected' || step === 'encrypting' || step === 'uploading') ? (
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+              <Clock3 className="h-3.5 w-3.5" />
+              Storage Duration
+            </label>
+            <Tabs value={String(selectedHours)} onValueChange={(v) => setSelectedHours(Number(v))}>
+              <TabsList className="w-full grid grid-cols-4 bg-slate-800/40 border border-slate-700/50">
+                {EXPIRY_OPTIONS.map((opt) => (
+                  <TabsTrigger
+                    key={opt.label}
+                    value={String(opt.hours)}
+                    disabled={step !== 'selected'}
+                    className={`text-xs data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-400 text-slate-400 hover:text-slate-300 ring-0 focus-visible:ring-0`}
+                  >
+                    {opt.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+        ) : null}
 
         {/* Progress */}
-        {(step === 'encrypting' || step === 'uploading') && (
+        {(step === 'encrypting' || step === 'uploading') ? (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="text-slate-400 flex items-center gap-1.5">
                 <Clock3 className="h-3 w-3" />
-                {step === 'encrypting' ? 'Encrypting file locally…' : 'Uploading to Walrus…'}
+                {progressMessage}
               </span>
               <span className="text-emerald-400 font-mono tabular-nums">{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-1.5 bg-slate-800" />
           </div>
-        )}
+        ) : null}
 
         {/* Error */}
-        {error && (
+        {error ? (
           <Alert variant="destructive" className="border-red-900/40 bg-red-950/20 text-red-400 text-xs">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-        )}
+        ) : null}
 
-        {/* Upload Button */}
-        {step === 'selected' && (
-          <Button
-            onClick={handleUpload}
-            className="w-full text-sm font-medium bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all duration-200 active:translate-y-[1px]"
-          >
-            Encrypt & Upload
-          </Button>
-        )}
+        {/* Upload Button or Wallet Connect Guard */}
+        {step === 'selected' ? (
+          account ? (
+            <Button
+              onClick={handleUpload}
+              className="w-full text-sm font-medium bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all duration-200 active:translate-y-[1px]"
+            >
+              Encrypt & Upload
+            </Button>
+          ) : (
+            <div className="flex flex-col gap-3 p-4 rounded-xl border border-slate-800 bg-slate-950/40">
+              <p className="text-xs text-slate-400 text-center">
+                A connected Sui wallet is required to pay for gas and register storage.
+              </p>
+              <div className="flex justify-center">
+                <WalletButton />
+              </div>
+            </div>
+          )
+        ) : null}
 
         {/* Done / Share Link */}
-        {step === 'done' && shareLink && (
+        {(step === 'done' && shareLink) ? (
           <div className="space-y-3">
             <Alert className="border-emerald-900/40 bg-emerald-950/20 text-emerald-400 text-xs py-2.5">
               <Check className="h-3.5 w-3.5" />
@@ -261,7 +398,7 @@ export function UploadCard() {
                 {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <a
                 href={shareLink}
                 target="_blank"
@@ -271,6 +408,39 @@ export function UploadCard() {
                 Open link
               </a>
               <span className="text-slate-800">·</span>
+              
+              <Dialog>
+                <DialogTrigger
+                  render={
+                    <button className="text-xs text-slate-500 hover:text-slate-300 underline decoration-slate-700 hover:decoration-slate-500 transition-colors flex items-center gap-1 cursor-pointer" />
+                  }
+                >
+                  <QrCode className="h-3 w-3" />
+                  Show QR Code
+                </DialogTrigger>
+                <DialogContent className="border-slate-800 bg-slate-950 max-w-xs p-6 flex flex-col items-center text-center">
+                  <DialogHeader className="gap-1 items-center">
+                    <DialogTitle className="text-sm font-semibold text-slate-100">
+                      Scan QR Code
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-slate-500">
+                      Scan to download directly on mobile
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="mt-4 p-3 bg-[#090d16] border border-slate-800 rounded-xl flex items-center justify-center">
+                    <QRCodeSVG
+                      value={shareLink}
+                      size={180}
+                      bgColor="#090d16"
+                      fgColor="#10b981"
+                      level="M"
+                      includeMargin={true}
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <span className="text-slate-800">·</span>
               <button
                 onClick={resetUpload}
                 className="text-xs text-slate-500 hover:text-slate-300 underline decoration-slate-700 hover:decoration-slate-500 transition-colors"
@@ -279,7 +449,7 @@ export function UploadCard() {
               </button>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
 
       <Toaster richColors position="bottom-right" theme="dark" />
