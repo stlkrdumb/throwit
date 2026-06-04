@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "sui-dev": {
+      "source": "mystenlabs/sui-dev-skills",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "4d648f5cba3a17106647acc3c1eadc4fdb0a5b55bd371901a485b11a2d5cfb9d"
+    }
+  }
+}

@@ -1,65 +1,72 @@
-import Image from "next/image";
+import { UploadWrapper } from '@/components/UploadWrapper';
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="flex flex-col gap-12">
+      {/* Hero */}
+      <section className="space-y-3">
+        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-slate-100 leading-none">
+          Send files. Encrypted.
+        </h1>
+        <p className="text-sm text-slate-400 max-w-md leading-relaxed">
+          Upload any file — it gets encrypted in your browser before touching the network.
+          Share a link. Recipients decrypt and download. No accounts, no subscriptions.
+          Powered by Walrus on Sui.
+        </p>
+      </section>
+
+      {/* Divider */}
+      <div className="border-t border-slate-800/60" />
+
+      {/* Upload Card */}
+      <section>
+        <UploadWrapper />
+      </section>
+
+      {/* How it works */}
+      <section className="space-y-6">
+        <h2 className="text-sm font-medium text-slate-400 uppercase tracking-wider">How it works</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            {
+              step: '01',
+              title: 'Encrypt locally',
+              desc: 'Your file is encrypted with AES-256-GCM in the browser using Web Crypto. The server never sees plaintext.',
+            },
+            {
+              step: '02',
+              title: 'Store on Walrus',
+              desc: 'The encrypted blob goes to Walrus — decentralized storage on Sui. Available for 1h, 3h, 1d, or 3d.',
+            },
+            {
+              step: '03',
+              title: 'Share & download',
+              desc: 'A shareable link contains the encrypted blob ID and decryption key (in the URL fragment). Recipients decrypt instantly.',
+            },
+          ].map((item) => (
+            <div
+              key={item.step}
+              className="rounded-xl border border-slate-800 bg-slate-900/30 p-5 space-y-2"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <span className="text-xs font-mono text-emerald-400/70">{item.step}</span>
+              <h3 className="text-sm font-medium text-slate-200">{item.title}</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">{item.desc}</p>
+            </div>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </section>
+
+      {/* Tech badges */}
+      <section className="flex items-center gap-4 pt-2 pb-8">
+        {['Walrus', 'Sui', 'Tatum', 'Next.js 16'].map((tech) => (
+          <span
+            key={tech}
+            className="px-3 py-1 rounded-full bg-slate-800/50 text-xs font-mono text-slate-500 border border-slate-800"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            {tech}
+          </span>
+        ))}
+      </section>
     </div>
   );
 }
