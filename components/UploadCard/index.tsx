@@ -120,12 +120,17 @@ function UploadCardContent() {
           </div>
         </div>
 
-        {/* Medium status text */}
+        {/* Status text */}
         <p className="text-sm font-medium text-slate-200">{state.progressMessage}</p>
 
-        {/* Thin progress bar */}
+        {/* Progress bar — visible track + thin fill */}
         <div className="w-full max-w-xs">
-          <Progress value={state.progress} className="h-1 bg-slate-800" />
+          <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-emerald-400 rounded-full transition-all duration-300"
+              style={{ width: `${state.progress}%` }}
+            />
+          </div>
         </div>
       </div>
     );
