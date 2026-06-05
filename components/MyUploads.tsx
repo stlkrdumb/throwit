@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { useCurrentAccount, useDAppKit, useCurrentClient } from '@mysten/dapp-kit-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2, Copy, Check, ExternalLink, HardDrive, ShieldAlert, Loader2, X, Info } from 'lucide-react';
+import { Trash2, Copy, Check, ExternalLink, HardDrive, ShieldAlert, Loader2, X, Info, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { getWalrusWriteClient } from '@/lib/walrus';
 import { buildShareLink } from '@/lib/link';
@@ -29,6 +31,8 @@ export function MyUploads() {
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
+  const [qrOpen, setQrOpen] = useState(false);
+  const [qrItem, setQrItem] = useState<UploadItem | null>(null);
 
   // Load history from localStorage
   const loadUploads = () => {
@@ -251,6 +255,15 @@ export function MyUploads() {
                     )}
                   </button>
 
+                  {/* QR Code */}
+                  <button
+                    onClick={() => { setQrItem(item); setQrOpen(true); }}
+                    className="h-8 w-8 rounded-lg border border-slate-900 bg-slate-900/40 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-colors"
+                    title="Show QR Code"
+                  >
+                    <QrCode className="h-4 w-4" />
+                  </button>
+
                   {/* Delete & Refund */}
                   <button
                     onClick={() => handleDelete(item, index)}
@@ -277,6 +290,30 @@ export function MyUploads() {
             </div>
           )}
         </div>
+
+        {/* QR Code Dialog */}
+        <Dialog open={qrOpen} onOpenChange={(open) => { setQrOpen(open); if (!open) setQrItem(null); }}>
+          <DialogContent className="border-slate-800 bg-slate-950 max-w-xs p-6 flex flex-col items-center text-center overscroll-y-contain">
+            <DialogHeader className="gap-1 items-center">
+              <DialogTitle className="text-sm font-semibold text-slate-100">Scan QR Code</DialogTitle>
+              <DialogDescription className="text-xs text-slate-500">
+                Scan to download directly on mobile
+              </DialogDescription>
+            </DialogHeader>
+            {qrItem && (
+              <div className="mt-4 p-3 bg-[#090d16] border border-slate-800 rounded-xl flex items-center justify-center">
+                <QRCodeSVG
+                  value={buildShareLink(qrItem.blobId, qrItem.keyB64, qrItem.ivB64, qrItem.filename)}
+                  size={180}
+                  bgColor="#090d16"
+                  fgColor="#10b981"
+                  level="M"
+                  includeMargin={true}
+                />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </>
   );
