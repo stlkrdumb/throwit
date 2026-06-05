@@ -13,7 +13,7 @@ import { ErrorState } from './states/error';
 
 function UploadCardHeader() {
   return (
-    <div className="px-6 py-4 border-b border-slate-800/60 flex items-center gap-3">
+    <div className="px-2 py-4 border-b border-slate-800/60 flex items-center gap-3">
       <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center ring-1 ring-emerald-500/20 shrink-0">
         <Upload className="h-4 w-4 text-emerald-400" />
       </div>
