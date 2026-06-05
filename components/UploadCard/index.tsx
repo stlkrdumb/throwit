@@ -59,6 +59,11 @@ function UploadBody() {
   }
 }
 
+function UploadHeaderOnly() {
+  const { state } = useUploadContext();
+  return <UploadCardHeader />;
+}
+
 export function UploadCard({ onSave }: { onSave?: (upload: UploadedFileMeta) => void }) {
   return (
     <UploadProvider onSave={onSave}>
@@ -76,9 +81,15 @@ function UploadView() {
     return <LoadingState />;
   }
 
+  // Complete / Error have their own headers — render frame + body only.
+  if (step === 'done' || step === 'error') {
+    return <UploadCardFrame>{<UploadBody />}</UploadCardFrame>;
+  }
+
+  // Idle / Selected use the shared static header.
   return (
     <UploadCardFrame>
-      <UploadCardHeader />
+      <UploadHeaderOnly />
       <UploadBody />
     </UploadCardFrame>
   );
