@@ -178,7 +178,10 @@
 
   /* Focus visible — bold ring, matches cyan accent */
   :focus-visible {
-    @apply outline-none ring-2 ring-cyan ring-offset-2 ring-offset-[var(--neo-page-bg)] transition-shadow duration-150;
+    outline: none;
+    outline-offset: 2px;
+    outline-color: var(--neo-cyan);
+    transition: box-shadow 0.15s ease;
   }
 
   /* Selection color — pink highlight */
