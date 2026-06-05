@@ -49,7 +49,11 @@ export const config = {
   get rpc() { return getActiveRpcUrl(network); },
   aggregator: process.env.NEXT_PUBLIC_WALRUS_AGGREGATOR || 
     (network === 'mainnet' ? 'https://aggregator.walrus.site' : 'https://aggregator.testnet.walrus.site'),
-  appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  // Dynamic: uses window.location.origin in browser (works for localhost, preview, prod)
+  get appUrl() {
+    if (typeof window !== 'undefined') return window.location.origin;
+    return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  },
   storageApiUrl: process.env.NEXT_PUBLIC_TATUM_STORAGE_API || 'https://api.tatum.io',
 } as const;
 
