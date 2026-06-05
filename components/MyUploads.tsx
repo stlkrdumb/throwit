@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useCurrentAccount, useDAppKit, useCurrentClient } from '@mysten/dapp-kit-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2, Copy, Check, ExternalLink, HardDrive, ShieldAlert, Loader2, X, Info, QrCode } from 'lucide-react';
+import { Trash2, Copy, Check, ExternalLink, HardDrive, ShieldAlert, Loader2, X, Info, QrCode, FileImage, FileVideo, FileAudio2, FileArchive, FileCode, FileType, FileLock } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
@@ -20,6 +20,45 @@ interface UploadItem {
   uploadedAt: number;
   keyB64: string;
   ivB64: string;
+}
+
+interface FileTypeConfig {
+  icon: React.ReactNode;
+  color: string;
+  bg: string;
+}
+
+const EXTENSION_MAP: Record<string, FileTypeConfig> = {
+  // Images
+  image: { icon: <FileImage className="h-4 w-4" />, color: '#22d3ee', bg: 'bg-cyan-500/10 border-cyan-500/20' },
+  // Videos
+  video: { icon: <FileVideo className="h-4 w-4" />, color: '#a78bfa', bg: 'bg-violet-500/10 border-violet-500/20' },
+  // Audio
+  audio: { icon: <FileAudio2 className="h-4 w-4" />, color: '#fb923c', bg: 'bg-orange-500/10 border-orange-500/20' },
+  // Archives
+  archive: { icon: <FileArchive className="h-4 w-4" />, color: '#fbbf24', bg: 'bg-amber-500/10 border-amber-500/20' },
+  // Code
+  code: { icon: <FileCode className="h-4 w-4" />, color: '#34d399', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+  // Default — encrypted file
+  default: { icon: <FileLock className="h-4 w-4" />, color: '#64748b', bg: 'bg-slate-500/10 border-slate-500/20' },
+};
+
+const TYPE_EXTENSIONS = {
+  image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'tiff'],
+  video: ['mp4', 'webm', 'mov', 'avi', 'mkv', 'flv', 'wmv'],
+  audio: ['mp3', 'wav', 'ogg', 'aac', 'flac', 'wma', 'm4a'],
+  archive: ['zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz'],
+  code: ['js', 'ts', 'tsx', 'jsx', 'html', 'css', 'py', 'go', 'rs', 'c', 'cpp', 'h', 'java', 'json', 'xml', 'yaml', 'yml', 'md', 'toml', 'ini', 'env', 'lock'],
+};
+
+function getFileType(filename: string): FileTypeConfig {
+  const ext = filename.split('.').pop()?.toLowerCase() || '';
+  for (const [type, extensions] of Object.entries(TYPE_EXTENSIONS)) {
+    if (extensions.includes(ext)) {
+      return EXTENSION_MAP[type as keyof typeof EXTENSION_MAP];
+    }
+  }
+  return EXTENSION_MAP.default;
 }
 
 export function MyUploads() {
@@ -216,16 +255,25 @@ export function MyUploads() {
         {/* Scrollable File List */}
         <div className="flex-1 overflow-y-auto pr-1 space-y-3">
           {uploads.length > 0 ? (
-            uploads.map((item, index) => (
+            uploads.map((item, index) => {
+              const fileType = getFileType(item.filename);
+              return (
               <div
                 key={item.blobId}
                 className="flex items-center justify-between gap-4 p-3.5 rounded-xl border border-slate-900 bg-slate-950/40 hover:border-slate-800/80 transition-colors"
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-slate-200 truncate">{item.filename}</p>
-                  <p className="text-[10px] text-slate-500 mt-1 font-mono">
-                    {formatFileSize(item.size)} · {new Date(item.uploadedAt).toLocaleDateString()}
-                  </p>
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  {/* File type icon */}
+                  <div className={`h-8 w-8 rounded-lg ${fileType.bg} border flex items-center justify-center shrink-0`} style={{ color: fileType.color }}>
+                    {fileType.icon}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-slate-200 truncate">{item.filename}</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5 font-mono">
+                      {formatFileSize(item.size)} · {new Date(item.uploadedAt).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
@@ -277,7 +325,8 @@ export function MyUploads() {
                   </button>
                 </div>
               </div>
-            ))
+              );
+            })
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500 border border-dashed border-slate-900 rounded-xl">
               <ShieldAlert className="h-9 w-9 text-slate-700 mb-2.5" />
