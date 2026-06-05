@@ -36,6 +36,32 @@ export function Providers({ children }: { children: React.ReactNode }) {
       ) {
         console.log('[Fetch Interceptor] Proxying Walrus node request:', url);
         const proxyUrl = `/api/walrus-node-proxy?target=${encodeURIComponent(url)}`;
+        
+        if (input instanceof Request) {
+          const cloned = input.clone();
+          const requestInit: RequestInit = {
+            method: cloned.method,
+            headers: cloned.headers,
+            body: cloned.body,
+            mode: cloned.mode,
+            credentials: cloned.credentials,
+            cache: cloned.cache,
+            redirect: cloned.redirect,
+            referrer: cloned.referrer,
+            integrity: cloned.integrity,
+            keepalive: cloned.keepalive,
+            signal: cloned.signal,
+          };
+          if (init) {
+            Object.assign(requestInit, init);
+          }
+          if (cloned.method === 'GET' || cloned.method === 'HEAD') {
+            delete requestInit.body;
+          }
+          const newRequest = new Request(proxyUrl, requestInit);
+          return originalFetch(newRequest);
+        }
+        
         return originalFetch(proxyUrl, init);
       }
 
