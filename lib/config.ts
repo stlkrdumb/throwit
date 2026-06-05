@@ -5,10 +5,10 @@ const network = (process.env.NEXT_PUBLIC_SUI_NETWORK ?? 'testnet') as 'testnet' 
 
 export function getActiveRpcUrl(net: 'testnet' | 'mainnet'): string {
   if (typeof window === 'undefined') {
-    // SSR default: use Tatum SUI Gateway
+    // SSR default: use Tatum SUI gRPC Gateway
     return net === 'mainnet'
-      ? (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-mainnet.gateway.tatum.io')
-      : (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-testnet.gateway.tatum.io');
+      ? (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-mainnet-grpc.gateway.tatum.io')
+      : (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-testnet-grpc.gateway.tatum.io');
   }
 
   const provider = localStorage.getItem('throwit_rpc_provider') || 'tatum';
@@ -17,11 +17,35 @@ export function getActiveRpcUrl(net: 'testnet' | 'mainnet'): string {
       ? 'https://fullnode.mainnet.sui.io:443'
       : 'https://fullnode.testnet.sui.io:443';
   } else {
-    // Default to Tatum SUI Gateway
+    // Default to Tatum SUI gRPC Gateway
     return net === 'mainnet'
-      ? (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-mainnet.gateway.tatum.io')
-      : (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-testnet.gateway.tatum.io');
+      ? (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-mainnet-grpc.gateway.tatum.io')
+      : (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-testnet-grpc.gateway.tatum.io');
   }
+}
+
+export function getRpcHeaders(): Record<string, string> {
+  if (typeof window === 'undefined') {
+    const envKey = process.env.NEXT_PUBLIC_TATUM_API_KEY;
+    return envKey ? { 'x-api-key': envKey } : {};
+  }
+
+  const provider = localStorage.getItem('throwit_rpc_provider') || 'tatum';
+  if (provider === 'official') {
+    return {};
+  }
+
+  const customKey = localStorage.getItem('throwit_tatum_api_key');
+  if (customKey) {
+    return { 'x-api-key': customKey };
+  }
+
+  const envKey = process.env.NEXT_PUBLIC_TATUM_API_KEY;
+  if (envKey) {
+    return { 'x-api-key': envKey };
+  }
+
+  return {};
 }
 
 export const config = {
