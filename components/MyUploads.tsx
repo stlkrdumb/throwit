@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useCurrentAccount, useDAppKit, useCurrentClient } from '@mysten/dapp-kit-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2, Copy, Check, ExternalLink, HardDrive, ShieldAlert, Loader2, X, Info, QrCode, FileImage, FileVideo, FileAudio2, FileArchive, FileCode, FileType, FileLock } from 'lucide-react';
+import { Trash2, Copy, Check, ExternalLink, HardDrive, ShieldAlert, Loader2, X, Info, QrCode, FileImage, FileVideo, FileAudio2, FileArchive, FileCode, FileType, FileLock, ChevronDown, ChevronUp } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
@@ -43,6 +43,25 @@ const EXTENSION_MAP: Record<string, FileTypeConfig> = {
   default: { icon: <FileLock className="h-4 w-4" />, color: '#64748b', bg: 'bg-slate-500/10 border-slate-500/20' },
 };
 
+
+
+// Check if an upload is a ZIP pack and return its entries
+function getZipPack(item: UploadItem) {
+  // Heuristic: filename ends with .zip OR size looks like compressed data
+  const ext = item.filename.split('.').pop()?.toLowerCase();
+  if (ext === 'zip') return { isZip: true, filename: item.filename };
+  // Check localStorage zipMeta if stored
+  return null;
+}
+
+function getEntryList(item: UploadItem, address?: string): { name: string; size: number }[] | null {
+  if (!address) return null;
+  const key = `throwit_uploads_${address}`;
+  const list = JSON.parse(localStorage.getItem(key) || '[]');
+  const upload = list.find((u: any) => u.blobId === item.blobId);
+  return upload?.zipMeta?.entries ?? null;
+}
+
 const TYPE_EXTENSIONS = {
   image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'tiff'],
   video: ['mp4', 'webm', 'mov', 'avi', 'mkv', 'flv', 'wmv'],
@@ -72,6 +91,7 @@ export function MyUploads() {
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [qrItem, setQrItem] = useState<UploadItem | null>(null);
+  const [expandedZip, setExpandedZip] = useState<number | null>(null);
 
   // Load history from localStorage
   const loadUploads = () => {
@@ -256,25 +276,55 @@ export function MyUploads() {
         <div className="flex-1 overflow-y-auto pr-1 space-y-3">
           {uploads.length > 0 ? (
             uploads.map((item, index) => {
-              const fileType = getFileType(item.filename);
+              const isZip = item.filename.endsWith('.zip') || item.filename === 'throwit-pack.zip';
+              const fileType = getFileType(isZip ? item.filename : item.filename);
+              const showEntries = isZip && expandedZip === index;
+
               return (
               <div
                 key={item.blobId}
                 className="flex items-center justify-between gap-4 p-3.5 rounded-xl border border-slate-900 bg-slate-950/40 hover:border-slate-800/80 transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  {/* File type icon */}
-                  <div className={`h-8 w-8 rounded-lg ${fileType.bg} border flex items-center justify-center shrink-0`} style={{ color: fileType.color }}>
-                    {fileType.icon}
+                  {/* File type icon — ZIP packs get archive icon */}
+                  {/* ZIP packs use archive icon */}
+                  <div className={`h-8 w-8 rounded-lg ${isZip ? EXTENSION_MAP.archive.bg : fileType.bg} border flex items-center justify-center shrink-0`} style={{ color: isZip ? EXTENSION_MAP.archive.color : fileType.color }}>
+                    {isZip ? EXTENSION_MAP.archive.icon : fileType.icon}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-slate-200 truncate">{item.filename}</p>
                     <p className="text-[10px] text-slate-500 mt-0.5 font-mono">
                       {formatFileSize(item.size)} · {new Date(item.uploadedAt).toLocaleDateString()}
+                      {isZip ? (
+                        <button
+                          type="button"
+                          onClick={() => setExpandedZip(expandedZip === index ? null : index)}
+                          className="ml-1.5 text-emerald-400/70 hover:text-emerald-400 transition-colors inline-flex items-center gap-0.5"
+                        >
+                          {showEntries ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />}
+                          Contents
+                        </button>
+                      ) : null}
                     </p>
                   </div>
                 </div>
+
+                {/* ZIP contents popup */}
+                {isZip && showEntries ? (
+                  <div className="absolute left-0 right-full mr-2 top-0 w-64 p-3 rounded-xl border border-slate-800 bg-slate-950 shadow-lg z-10">
+                    <p className="text-[10px] font-semibold text-slate-500 uppercase mb-2">Contained Files</p>
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                      {(getEntryList(item, account.address) || []).map((e, ei) => (
+                        <div key={ei} className="flex items-center gap-2">
+                          <span className="text-[9px] font-mono text-slate-600 w-3">{ei + 1}</span>
+                          <span className="text-[10px] text-slate-300 truncate flex-1">{e.name}</span>
+                          <span className="text-[9px] text-slate-600 shrink-0">{formatFileSize(e.size)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="flex items-center gap-1.5 shrink-0">
                   {/* View on Explorer */}

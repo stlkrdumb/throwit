@@ -46,12 +46,14 @@ export type UploadErrorType =
   | 'blob-encoding'
   | 'unknown';
 
-// File selected for upload with encryption progress
 interface SelectedFile {
   file: File;
-  encrypted?: { ciphertext: Uint8Array; iv: Uint8Array };
-  keyB64?: string;
-  ivB64?: string;
+}
+
+export interface ZipPackMeta {
+  isPack: true;
+  entryCount: number;
+  entries: { name: string; size: number }[];
 }
 
 export interface UploadedFileMeta {
@@ -62,27 +64,22 @@ export interface UploadedFileMeta {
   uploadedAt: number;
   keyB64: string;
   ivB64: string;
+  zipMeta?: ZipPackMeta;
 }
 
 export interface UseFileUploadOptions {
-  /** Called when upload completes successfully. Defaults to localStorage + event dispatch. */
   onSave?: (upload: UploadedFileMeta) => void;
-  /** Fired when a new upload entry is saved, for external UI sync. */
   onNotifySuccess?: () => void;
 }
 
 export interface UseFileUploadReturn {
-  // File selection state
   fileInfos: { name: string; size: number }[];
   totalSize: number;
-  fileCount: number;
   singleFile: File | null;
 
-  // Upload step
   step: UploadStep;
   setStep: React.Dispatch<React.SetStateAction<UploadStep>>;
 
-  // UI state
   selectedHours: number;
   setSelectedHours: React.Dispatch<React.SetStateAction<number>>;
   shareLink: string | null;
@@ -93,7 +90,6 @@ export interface UseFileUploadReturn {
   copied: boolean;
   setCopied: React.Dispatch<React.SetStateAction<boolean>>;
 
-  // Dropzone integration
   getRootProps: ReturnType<typeof useDropzone>['getRootProps'];
   getInputProps: ReturnType<typeof useDropzone>['getInputProps'];
   isDragActive: boolean;
@@ -105,10 +101,6 @@ export interface UseFileUploadReturn {
   removeFile: (index: number) => void;
 }
 
-/**
- * Custom hook with multi-file support:
- * files → encrypt each → pack into ZIP if >1 → upload to Walrus → share link.
- */
 export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUploadReturn {
   const { onSave, onNotifySuccess } = options;
 
@@ -137,7 +129,6 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
     }
     if (acceptedFiles.length === 0) return;
 
-    // Merge with existing files instead of replacing
     const newSelected: SelectedFile[] = [
       ...filesRef.current,
       ...acceptedFiles.map((f) => ({ file: f, progress: 0 })),
@@ -169,17 +160,14 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
   const removeFile = useCallback((index: number) => {
     const newFiles = filesRef.current.filter((_, i) => i !== index);
     const newInfos = fileInfos.filter((_, i) => i !== index);
-    if (newFiles.length === 0) {
-      resetUpload();
-      return;
-    }
+    if (newFiles.length === 0) { resetUpload(); return; }
     filesRef.current = newFiles;
     setFileInfos(newInfos);
     setTotalSize(newFiles.reduce((s, f) => s + f.file.size, 0));
     setSingleFile(newFiles.length === 1 ? newFiles[0].file : null);
   }, [fileInfos]);
 
-  // --- Core upload ---
+  // --- Core upload — ZIP-only for packs, direct encrypt for single ---
   const executeUpload = useCallback(async (): Promise<void> => {
     if (filesRef.current.length === 0) throw new Error('No files selected');
     if (!account) { toast.error('Connect your wallet first'); return; }
@@ -187,139 +175,118 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
     setStep('encrypting');
     setError(null);
     setProgress(0);
-    const isSingle = filesRef.current.length === 1;
-    setProgressMessage(isSingle ? 'Encrypting file…' : `Encrypting ${filesRef.current.length} files…`);
+
+    const isPack = filesRef.current.length > 1;
 
     try {
-      // Step 1: Encrypt each file individually
-      for (let i = 0; i < filesRef.current.length; i++) {
-        const f = filesRef.current[i];
-        const key = await generateKey();
-        const { ciphertext, iv } = await encryptFile(f.file, key);
-        const keyB64 = await exportKey(key);
-        const ivB64 = btoa(String.fromCharCode(...iv))
-          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      // Prepare ciphertext + IV + the key used to encrypt it
+      let dataToUpload: Uint8Array;
+      let finalIv: Uint8Array;
+      let encryptionKey: CryptoKey;
 
-        filesRef.current[i] = { ...f, encrypted: { ciphertext, iv }, keyB64, ivB64 };
-        setProgress(Math.round(((i + 1) / filesRef.current.length) * 25));
-        setProgressMessage(`Encrypted ${i + 1}/${filesRef.current.length}…`);
-      }
+      if (isPack) {
+        setProgressMessage(`Packing ${filesRef.current.length} files into ZIP…`);
+        setProgress(5);
 
-      // Step 2: Upload each encrypted blob to Walrus
-      const client = getWalrusWriteClient();
-      const epochs = hoursToEpochs(selectedHours);
-      const singleBlobIds: string[] = [];
-      const singleObjectIds: string[] = [];
-
-      for (let i = 0; i < filesRef.current.length; i++) {
-        setProgressMessage(`Encoding blob ${i + 1}/${filesRef.current.length}…`);
-        setProgress(30);
-
-        const flow = client.writeBlobFlow({ blob: filesRef.current[i].encrypted!.ciphertext });
-        const encoded = await flow.encode();
-        singleBlobIds[i] = encoded.blobId;
-
-        setProgressMessage(`Registering ${i + 1}/${filesRef.current.length}…`);
-        setProgress(40);
-
-        const registerTx = flow.register({ epochs, deletable: true, owner: account.address });
-        toast.info('Approve registration in your wallet…');
-        const regResult = await dAppKit.signAndExecuteTransaction({ transaction: registerTx });
-        if (regResult.FailedTransaction) throw new Error(regResult.FailedTransaction.status.error?.message ?? 'Registration failed.');
-        await suiClient!.waitForTransaction({ digest: regResult.Transaction.digest });
-
-        setProgressMessage(`Uploading slivers ${i + 1}/${filesRef.current.length}…`);
-        setProgress(55);
-        await flow.upload({ digest: regResult.Transaction.digest });
-
-        setProgressMessage(`Certifying ${i + 1}/${filesRef.current.length}…`);
-        setProgress(70);
-        toast.info('Approve certification in your wallet…');
-        const certTx = client.writeBlobFlow({ blob: filesRef.current[i].encrypted!.ciphertext }).certify();
-        const certResult = await dAppKit.signAndExecuteTransaction({ transaction: certTx });
-        if (certResult.FailedTransaction) throw new Error(certResult.FailedTransaction.status.error?.message ?? 'Certification failed.');
-        await suiClient!.waitForTransaction({ digest: certResult.Transaction.digest });
-
-        singleObjectIds[i] = (await client.writeBlobFlow({ blob: filesRef.current[i].encrypted!.ciphertext }).getBlob()).blobObjectId;
-      }
-
-      setProgress(85);
-      setProgressMessage('Uploading…');
-
-      // Step 3: Pack into ZIP if multiple, upload the pack
-      if (isSingle) {
-        const f = filesRef.current[0];
-        setShareLink(`${config.appUrl}/d/${singleBlobIds[0]}#${f.keyB64!}.${f.ivB64!}.${encodeURIComponent(f.file.name)}`);
-      } else {
-        // Create ZIP from encrypted blobs
-        setProgressMessage('Creating ZIP archive…');
+        // Pack all original files into ZIP
         const zip = new JSZip();
-        for (let i = 0; i < filesRef.current.length; i++) {
-          zip.file(filesRef.current[i].file.name, filesRef.current[i].encrypted!.ciphertext);
+        for (const f of filesRef.current) {
+          zip.file(f.file.name, f.file);
         }
 
         setProgressMessage('Encrypting ZIP pack…');
+        setProgress(15);
+
         const zipBuffer = await zip.generateAsync({ type: 'uint8array' });
-        const zipKey = await generateKey();
-        const { ciphertext: zipCiphertext, iv: zipIv } = await encryptFile(new Uint8Array(zipBuffer.buffer).buffer as ArrayBuffer, zipKey);
-        const zipKeyB64 = await exportKey(zipKey);
-        const zipIvB64 = btoa(String.fromCharCode(...zipIv))
-          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        const rawData = new Uint8Array(zipBuffer.buffer as ArrayBuffer);
 
-        setProgressMessage('Registering ZIP on Walrus…');
-        setProgress(90);
-        const zipFlow = client.writeBlobFlow({ blob: new Uint8Array(zipBuffer.buffer) });
-        const zipEncoded = await zipFlow.encode();
+        // Encrypt the ZIP with a fresh key
+        const packKey = await generateKey();
+        encryptionKey = packKey;
+        const packEncrypted = await encryptFile(rawData.buffer as ArrayBuffer, packKey);
+        dataToUpload = new Uint8Array(packEncrypted.ciphertext);
+        finalIv = packEncrypted.iv;
+      } else {
+        // Single file: encrypt directly with a key
+        setProgressMessage('Encrypting file…');
+        setProgress(5);
 
-        const zipRegTx = zipFlow.register({ epochs, deletable: true, owner: account.address });
-        toast.info('Approve ZIP registration…');
-        const zipRegResult = await dAppKit.signAndExecuteTransaction({ transaction: zipRegTx });
-        if (zipRegResult.FailedTransaction) throw new Error('ZIP registration failed.');
-        await suiClient!.waitForTransaction({ digest: zipRegResult.Transaction.digest });
-
-        setProgressMessage('Uploading ZIP slivers…');
-        await zipFlow.upload({ digest: zipRegResult.Transaction.digest });
-
-        setProgressMessage('Certifying ZIP…');
-        toast.info('Approve ZIP certification…');
-        const zipCertTx = zipFlow.certify();
-        const zipCertResult = await dAppKit.signAndExecuteTransaction({ transaction: zipCertTx });
-        if (zipCertResult.FailedTransaction) throw new Error('ZIP certification failed.');
-        await suiClient!.waitForTransaction({ digest: zipCertResult.Transaction.digest });
-
-        setShareLink(`${config.appUrl}/d/${zipEncoded.blobId}#${zipKeyB64}.${zipIvB64}.${encodeURIComponent('throwit-pack.zip')}`);
+        const fileKey = await generateKey();
+        encryptionKey = fileKey;
+        const encResult = await encryptFile(filesRef.current[0].file, fileKey);
+        dataToUpload = new Uint8Array(encResult.ciphertext);
+        finalIv = encResult.iv;
       }
 
-      setProgress(100);
-      setProgressMessage('Done!');
+      setProgress(30);
+      setProgressMessage('Uploading to Walrus…');
 
-      // Save metadata to localStorage
-      if (isSingle) {
-        const f = filesRef.current[0];
-        const upload: UploadedFileMeta = { blobId: singleBlobIds[0], blobObjectId: singleObjectIds[0], filename: f.file.name, size: f.file.size, uploadedAt: Date.now(), keyB64: f.keyB64!, ivB64: f.ivB64! };
-        if (onSave) onSave(upload); else {
-          const key = `throwit_uploads_${account.address}`;
-          const list = JSON.parse(localStorage.getItem(key) || '[]');
-          list.unshift(upload); localStorage.setItem(key, JSON.stringify(list));
-        }
-      } else {
-        const allIds = singleBlobIds.join(',');
-        const allObjs = singleObjectIds.join(',');
-        const allKeys = filesRef.current.map(f => f.keyB64!).join('|');
-        const allIvs = filesRef.current.map(f => f.ivB64!).join('|');
-        const upload: UploadedFileMeta = { blobId: allIds, blobObjectId: allObjs, filename: `${filesRef.current.length} files (ZIP)`, size: totalSize, uploadedAt: Date.now(), keyB64: allKeys, ivB64: allIvs };
-        if (onSave) onSave(upload); else {
-          const key = `throwit_uploads_${account.address}`;
-          const list = JSON.parse(localStorage.getItem(key) || '[]');
-          list.unshift(upload); localStorage.setItem(key, JSON.stringify(list));
-        }
+      const client = getWalrusWriteClient();
+      const epochs = hoursToEpochs(selectedHours);
+      const flow = client.writeBlobFlow({ blob: dataToUpload });
+      const encoded = await flow.encode();
+      const blobId = encoded.blobId;
+
+      setProgress(50);
+      setProgressMessage('Registering on-chain…');
+      const regTx = flow.register({ epochs, deletable: true, owner: account.address });
+      toast.info('Approve registration in your wallet…');
+      const regResult = await dAppKit.signAndExecuteTransaction({ transaction: regTx });
+      if (regResult.FailedTransaction) throw new Error(regResult.FailedTransaction.status.error?.message ?? 'Registration failed.');
+      await suiClient!.waitForTransaction({ digest: regResult.Transaction.digest });
+
+      setProgress(75);
+      setProgressMessage('Uploading slivers…');
+      await flow.upload({ digest: regResult.Transaction.digest });
+
+      setProgressMessage('Certifying on-chain…');
+      setProgress(90);
+      toast.info('Approve certification in your wallet…');
+      const certTx = flow.certify();
+      const certResult = await dAppKit.signAndExecuteTransaction({ transaction: certTx });
+      if (certResult.FailedTransaction) throw new Error(certResult.FailedTransaction.status.error?.message ?? 'Certification failed.');
+      await suiClient!.waitForTransaction({ digest: certResult.Transaction.digest });
+
+      const blobObjectId = (await flow.getBlob()).blobObjectId;
+
+      // Export key + build share link
+      setProgressMessage('Finalizing…');
+      const keyB64 = await exportKey(encryptionKey);
+      const ivB64 = btoa(String.fromCharCode(...finalIv))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+      const realFilename = isPack ? 'throwit-pack.zip' : filesRef.current[0].file.name;
+      setShareLink(`${config.appUrl}/d/${blobId}#${keyB64}.${ivB64}.${encodeURIComponent(realFilename)}`);
+
+      // Save metadata
+      const upload: UploadedFileMeta = {
+        blobId,
+        blobObjectId,
+        filename: realFilename,
+        size: totalSize,
+        uploadedAt: Date.now(),
+        keyB64,
+        ivB64,
+        zipMeta: isPack ? {
+          isPack: true,
+          entryCount: filesRef.current.length,
+          entries: filesRef.current.map((f) => ({ name: f.file.name, size: f.file.size })),
+        } : undefined,
+      };
+
+      if (onSave) onSave(upload);
+      else {
+        const key = `throwit_uploads_${account.address}`;
+        const list = JSON.parse(localStorage.getItem(key) || '[]');
+        list.unshift(upload); localStorage.setItem(key, JSON.stringify(list));
       }
 
       if (onNotifySuccess) onNotifySuccess();
       else window.dispatchEvent(new Event('throwit_upload_success'));
 
+      setProgress(100);
       setStep('done');
-      toast.success(isSingle ? 'Uploaded and encrypted!' : `${filesRef.current.length} files packed and uploaded!`);
+      toast.success(isPack ? `${filesRef.current.length} files packed & uploaded!` : 'Uploaded and encrypted!');
     } catch (err) {
       console.error('Upload error:', err);
       setError(err instanceof Error ? err.message : 'Upload failed.');
@@ -359,7 +326,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
   }, []);
 
   return {
-    fileInfos, totalSize, fileCount: filesRef.current.length, singleFile,
+    fileInfos, totalSize, singleFile,
     step, setStep, selectedHours, setSelectedHours, shareLink,
     progress, progressMessage, error, errorType, copied, setCopied,
     getRootProps, getInputProps, isDragActive,
