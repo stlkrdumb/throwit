@@ -15,50 +15,50 @@ interface FileInfoRowProps {
 
 export function FileInfoRow({ name, size, variant = 'default', onRemove, extra }: FileInfoRowProps) {
   const iconMap = {
-    default: <FileText className="h-5 w-5 text-slate-400" />,
-    loading: <Loader2 className="h-5 w-5 text-emerald-400 animate-spin" />,
-    success: <Check className="h-5 w-5 text-emerald-400" />,
-    error: <X className="h-5 w-5 text-red-400" />,
+    default: <FileText className="h-5 w-5 text-[var(--neo-text-muted)]" />,
+    loading: <Loader2 className="h-5 w-5 text-[var(--neo-pink)] animate-spin" />,
+    success: <Check className="h-5 w-5 text-[var(--neo-lime)]" />,
+    error: <X className="h-5 w-5 text-[var(--neo-red)]" />,
   };
 
   const borderMap = {
-    default: 'border-slate-800',
-    loading: 'border-emerald-900/30',
-    success: 'border-emerald-900/30',
-    error: 'border-red-800/40',
+    default: 'border-[2px] border-slate-800',
+    loading: 'border-[2px] border-[var(--neo-pink)]/30',
+    success: 'border-[2px] border-[var(--neo-lime)]/30',
+    error: 'border-[2px] border-[var(--neo-red)]',
   };
 
   const bgMap = {
-    default: 'bg-slate-950/40',
-    loading: 'bg-emerald-950/10',
-    success: 'bg-emerald-950/10',
-    error: 'bg-red-950/10',
+    default: 'bg-[var(--neo-page-bg)]',
+    loading: 'bg-[var(--neo-pink)]/10',
+    success: 'bg-[var(--neo-lime)]/10',
+    error: 'bg-[var(--neo-red)]/10',
   };
 
   const iconBgMap = {
-    default: 'bg-slate-800 ring-slate-700/50',
-    loading: 'bg-emerald-500/10 ring-emerald-500/20',
-    success: 'bg-emerald-500/10 ring-emerald-500/20',
-    error: 'bg-red-500/10 ring-red-500/20',
+    default: 'bg-slate-800 border-slate-700',
+    loading: 'bg-[var(--neo-pink)]/20 border-[var(--neo-pink)]',
+    success: 'bg-[var(--neo-lime)]/20 border-[var(--neo-lime)]',
+    error: 'bg-[var(--neo-red)]/20 border-[var(--neo-red)]',
   };
 
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-xl border ${borderMap[variant]} ${bgMap[variant]}`}>
-      <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ring-1 ${iconBgMap[variant]}`}>
+    <div className={`flex items-center gap-3 p-3 rounded-[var(--neo-radius-md)] ${borderMap[variant]} ${bgMap[variant]} neo-shadow-sm`}>
+      <div className={`h-10 w-10 rounded-[var(--neo-radius-sm)] flex items-center justify-center shrink-0 border-2 ${iconBgMap[variant]}`}>
         {iconMap[variant]}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-200 truncate">{name}</p>
-        <p className="text-xs text-slate-500 mt-0.5">{formatFileSize(size)}</p>
+        <p className="text-sm font-bold text-[var(--neo-text-primary)] truncate">{name}</p>
+        <p className="text-[10px] font-mono text-[var(--neo-text-muted)] mt-0.5">{formatFileSize(size)}</p>
       </div>
       {extra}
       {onRemove && (
         <button
           type="button"
           onClick={onRemove}
-          className="h-8 w-8 rounded-lg hover:bg-slate-700 flex items-center justify-center shrink-0 active:scale-95 transition-transform"
+          className="h-7 w-7 rounded-[var(--neo-radius-sm)] border-2 border-slate-800 hover:bg-[var(--neo-red)]/20 flex items-center justify-center shrink-0 active:scale-95 transition-all neo-button-like"
         >
-          <X className="h-4 w-4 text-slate-500" />
+          <X className="h-4 w-4 text-[var(--neo-text-muted)]" />
         </button>
       )}
     </div>

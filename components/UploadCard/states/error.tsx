@@ -16,13 +16,13 @@ export function ErrorState() {
   return (
     <>
       {/* Header */}
-      <div className="px-2 py-4 border-b border-slate-800/60 flex items-center gap-3">
-        <div className="h-9 w-9 rounded-lg bg-red-500/10 flex items-center justify-center ring-1 ring-red-500/20 shrink-0">
-          <AlertCircle className="h-4 w-4 text-red-400" />
+      <div className="px-4 py-4 border-b-[var(--neo-border-bold)] flex items-center gap-3 bg-[var(--neo-red)]/10">
+        <div className="h-9 w-9 rounded-[var(--neo-radius-md)] bg-[var(--neo-red)]/25 border-[2px] border-[var(--neo-red)] flex items-center justify-center shrink-0 neo-shadow-sm">
+          <AlertCircle className="h-4.5 w-4.5 text-[var(--neo-red)]" style={{ fontSize: '18px' }} />
         </div>
         <div className="flex-1">
-          <h2 className="text-sm font-medium text-slate-200">Upload Failed</h2>
-          <p className="text-xs text-slate-500">Something went wrong — you can retry or start over</p>
+          <h2 className="text-sm font-bold uppercase tracking-tight text-[var(--neo-text-primary)]">Upload Failed</h2>
+          <p className="text-[10px] font-mono text-[var(--neo-text-muted)]">SOMETHING WENT WRONG — YOU CAN RETRY OR START OVER</p>
         </div>
       </div>
 
@@ -32,7 +32,7 @@ export function ErrorState() {
 
       {error && (
         <>
-          <Alert variant="destructive" className="border-red-900/40 bg-red-950/20 text-red-400 text-xs">
+          <Alert variant="destructive" className="border-[3px] border-[var(--neo-red)] bg-[var(--neo-red)]/10 text-[var(--neo-red)] font-mono text-xs rounded-[var(--neo-radius-sm)]">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>

@@ -41,9 +41,9 @@ export function WalletButton() {
     return (
       <button
         disabled
-        className="inline-flex items-center justify-center rounded-lg border border-slate-800 bg-slate-900/50 text-slate-400 h-9 px-3 text-xs font-medium cursor-not-allowed"
+        className="inline-flex items-center justify-center rounded-[var(--neo-radius-sm)] border-2 border-slate-800 bg-transparent text-[var(--neo-text-muted)] h-9 px-3 text-xs font-bold uppercase tracking-wide cursor-not-allowed"
       >
-        <Loader2 className="mr-2 h-4 w-4 animate-spin text-slate-500" />
+        <Loader2 className="mr-2 h-4 w-4 animate-spin text-[var(--neo-text-muted)]" />
         Detecting...
       </button>
     );

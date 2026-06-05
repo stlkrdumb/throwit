@@ -1,6 +1,6 @@
 'use client';
 
-import { Upload } from 'lucide-react';
+import { Upload, ShieldCheck } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useUploadContext } from './context';
 import { UploadProvider } from './provider';
@@ -13,33 +13,25 @@ import { ErrorState } from './states/error';
 
 function UploadCardHeader() {
   return (
-    <div className="px-2 py-4 border-b border-slate-800/60 flex items-center gap-3">
-      <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center ring-1 ring-emerald-500/20 shrink-0">
-        <Upload className="h-4 w-4 text-emerald-400" />
+    <div className="px-4 py-4 border-b-[var(--neo-border-bold)] flex items-center gap-3 bg-[var(--neo-surface-hover)]">
+      <div className="h-9 w-9 rounded-[var(--neo-radius-md)] bg-[var(--neo-pink)]/15 border-[2px] border-[var(--neo-pink)] flex items-center justify-center shrink-0 neo-shadow-sm">
+        <Upload className="h-4.5 w-4.5 text-[var(--neo-pink)]" style={{ fontSize: '18px' }} />
       </div>
       <div>
-        <h2 className="text-sm font-medium text-slate-200">Upload File</h2>
-        <p className="text-xs text-slate-500 flex items-center gap-1.5">
-          <ShieldIcon />
-          End-to-end encrypted · stored on Walrus
+        <h2 className="text-sm font-bold tracking-tight uppercase text-[var(--neo-text-primary)]">Upload File</h2>
+        <p className="text-[10px] font-mono text-[var(--neo-text-muted)] flex items-center gap-1.5 mt-0.5">
+          <ShieldCheck className="h-3 w-3 text-[var(--neo-lime)]" />
+          E2E encrypted · stored on Walrus
         </p>
       </div>
     </div>
   );
 }
 
-function ShieldIcon() {
-  return (
-    <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  );
-}
-
 function UploadCardFrame({ children }: { children: React.ReactNode }) {
   return (
-    <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-sm overflow-hidden transition-all duration-200 hover:border-slate-700">
-      <div className="p-6 space-y-5">
+    <Card className="border-[var(--neo-border-thick)] bg-[var(--neo-surface)] shadow-md rounded-[var(--neo-radius-md)] overflow-hidden">
+      <div className="p-5 space-y-5">
         {children}
       </div>
     </Card>
