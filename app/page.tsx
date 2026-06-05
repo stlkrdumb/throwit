@@ -26,12 +26,6 @@ export default function Home() {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-5xl mx-auto px-6 flex flex-col items-center text-center gap-14">
-        {/* Top badge */}
-        <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-xs text-emerald-400 font-medium">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          Sui Testnet · Hackathon Project
-        </div>
-
         {/* Hero Copy */}
         <div className="space-y-6 max-w-3xl">
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight text-slate-100 leading-none">

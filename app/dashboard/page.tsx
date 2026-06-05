@@ -5,7 +5,7 @@ import { useCurrentAccount } from '@mysten/dapp-kit-react';
 import { UploadWrapper } from '@/components/UploadWrapper';
 import { MyUploadsWrapper } from '@/components/MyUploadsWrapper';
 import { WalletButton } from '@/components/WalletButton';
-import { Shield, HardDrive, LayoutGrid, Loader2, Lock } from 'lucide-react';
+import { Loader2, Lock } from 'lucide-react';
 
 export default function Dashboard() {
   const account = useCurrentAccount();
@@ -61,22 +61,7 @@ export default function Dashboard() {
       <div className="absolute top-[-30%] left-[-10%] h-[600px] w-[600px] rounded-full bg-violet-600/5 blur-[150px] pointer-events-none" />
       <div className="absolute bottom-[-30%] right-[-10%] h-[600px] w-[600px] rounded-full bg-emerald-600/5 blur-[150px] pointer-events-none" />
 
-      {/* Background grid overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none" />
-
       <div className="relative z-10 w-full max-w-md flex flex-col gap-6">
-        {/* Workspace title details */}
-        <div className="text-center space-y-1">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-[10px] text-emerald-400 font-medium uppercase tracking-wider">
-            <LayoutGrid className="h-3 w-3" />
-            Sui Storage Workspace
-          </div>
-          <h1 className="text-xl font-bold text-slate-100">Send Encrypted Files</h1>
-          <p className="text-xs text-slate-500 max-w-xs mx-auto">
-            Encrypt and push files directly to decentralized Walrus storage nodes.
-          </p>
-        </div>
-
         {/* Upload card container */}
         <div className="relative group">
           <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-emerald-500/25 to-indigo-500/25 opacity-30 blur-xl group-hover:opacity-40 transition duration-300" />
