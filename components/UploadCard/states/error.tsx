@@ -11,8 +11,21 @@ export function ErrorState() {
   const { fileInfo, error, errorType } = state;
   const { retryUpload, resetUpload } = actions;
 
+  if (!error) return null;
+
   return (
     <>
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-slate-800/60 flex items-center gap-3">
+        <div className="h-9 w-9 rounded-lg bg-red-500/10 flex items-center justify-center ring-1 ring-red-500/20 shrink-0">
+          <AlertCircle className="h-4 w-4 text-red-400" />
+        </div>
+        <div className="flex-1">
+          <h2 className="text-sm font-medium text-slate-200">Upload Failed</h2>
+          <p className="text-xs text-slate-500">Something went wrong — you can retry or start over</p>
+        </div>
+      </div>
+
       {fileInfo && (
         <FileInfoRow name={fileInfo.name} size={fileInfo.size} variant="error" />
       )}

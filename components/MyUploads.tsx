@@ -56,11 +56,9 @@ export function MyUploads() {
   useEffect(() => {
     loadUploads();
     
-    // Listen for custom upload events to auto-refresh and highlight history
+    // Listen for custom upload events to auto-refresh history
     const handleUploadSuccess = () => {
       loadUploads();
-      // Auto-open drawer when a new file is uploaded so they see their link
-      setIsOpen(true);
     };
     window.addEventListener('throwit_upload_success', handleUploadSuccess);
     return () => window.removeEventListener('throwit_upload_success', handleUploadSuccess);

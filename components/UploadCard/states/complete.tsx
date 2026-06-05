@@ -25,6 +25,19 @@ export function CompleteState() {
 
   return (
     <>
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-slate-800/60 flex items-center gap-3">
+        <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center ring-1 ring-emerald-500/20 shrink-0">
+          <svg className="h-4 w-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        </div>
+        <div className="flex-1">
+          <h2 className="text-sm font-medium text-slate-200">File Encrypted</h2>
+          <p className="text-xs text-slate-500">Your file is now available to share via a secure link</p>
+        </div>
+      </div>
+
       {/* File info */}
       {fileInfo && (
         <FileInfoRow name={fileInfo.name} size={fileInfo.size} variant="success" />
@@ -80,6 +93,8 @@ export function CompleteState() {
       </div>
 
       {/* QR Dialog */}
+      {/* Close dialog wrapper — ensure no margin-bottom overflow */}
+      <div className="mt-4" />
       <Dialog open={qrOpen} onOpenChange={setQrOpen}>
         <DialogContent className="border-slate-800 bg-slate-950 max-w-xs p-6 flex flex-col items-center text-center overscroll-y-contain">
           <DialogHeader className="gap-1 items-center">
