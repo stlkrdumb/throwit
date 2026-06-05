@@ -27,6 +27,7 @@ export interface UploadActions {
   retryUpload: () => void;
   handleCopy: () => void;
   resetUpload: () => void;
+  removeFile: (index: number) => void;
 }
 
 export interface UploadMeta {

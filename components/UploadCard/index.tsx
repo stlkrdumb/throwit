@@ -48,11 +48,20 @@ function UploadCardFrame({ children }: { children: React.ReactNode }) {
 
 function UploadBody() {
   const { state } = useUploadContext();
-  const { step } = state;
+  const { step, fileInfos } = state;
+
+  // During selection: show both drop zone and file list (multi-file support)
+  if (step === 'selected' && fileInfos.length > 0) {
+    return (
+      <>
+        <IdleState />
+        <ReadyState />
+      </>
+    );
+  }
 
   switch (step) {
     case 'idle': return <IdleState />;
-    case 'selected': return <ReadyState />;
     case 'done': return <CompleteState />;
     case 'error': return <ErrorState />;
     default: return null;

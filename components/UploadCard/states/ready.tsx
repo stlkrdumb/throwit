@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock3, X } from 'lucide-react';
+import { Clock3, Trash2 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { EXPIRY_OPTIONS, ExpiryOption, formatFileSize } from '@/hooks/useFileUpload';
@@ -12,7 +12,7 @@ export function ReadyState() {
   const { state, actions } = useUploadContext();
   const account = useCurrentAccount();
   const { fileInfos, totalSize, selectedHours } = state;
-  const { setSelectedHours, executeUpload, resetUpload } = actions;
+  const { setSelectedHours, executeUpload, removeFile } = actions;
 
   if (!fileInfos || fileInfos.length === 0) return null;
 
@@ -22,20 +22,21 @@ export function ReadyState() {
       <div className="space-y-2">
         {fileInfos.map((info, i) => (
           <div key={i} className="flex items-center gap-3 p-3 rounded-lg border border-slate-800 bg-slate-950/40 group hover:border-slate-700 transition-colors">
+            {account ? (
+              <button
+                type="button"
+                onClick={() => removeFile(i)}
+                className="opacity-0 group-hover:opacity-100 h-7 w-7 rounded-md flex items-center justify-center hover:bg-red-500/10 text-slate-600 hover:text-red-400 transition-all shrink-0"
+                title={`Remove ${info.name}`}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            ) : null}
             <span className="text-xs font-mono text-slate-600 w-5 shrink-0">{i + 1}</span>
             <div className="flex-1 min-w-0">
               <p className="text-sm text-slate-200 truncate">{info.name}</p>
               <p className="text-xs text-slate-500">{formatFileSize(info.size)}</p>
             </div>
-            {account ? (
-              <button
-                onClick={() => resetUpload()}
-                className="opacity-0 group-hover:opacity-100 h-7 w-7 rounded-md flex items-center justify-center hover:bg-red-500/10 transition-all shrink-0"
-                title="Remove all files"
-              >
-                <X className="h-3.5 w-3.5 text-slate-600" />
-              </button>
-            ) : null}
           </div>
         ))}
       </div>

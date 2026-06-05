@@ -27,6 +27,7 @@ export function UploadProvider({ children, onSave }: UploadProviderProps) {
     retryUpload,
     handleCopy,
     resetUpload,
+    removeFile,
     getRootProps,
     getInputProps,
     isDragActive,
@@ -53,6 +54,7 @@ export function UploadProvider({ children, onSave }: UploadProviderProps) {
     retryUpload,
     handleCopy,
     resetUpload,
+    removeFile,
   };
 
   const meta: UploadMeta = {
