@@ -2,7 +2,7 @@
 
 > Upload files. E2E encrypted. Share via link. No wallets required, zero gas fees.
 
-Powered by [Walrus](https://walrus.site) on Sui, utilizing gasless relayer infrastructure from [Tatum](https://tatum.io) and styled with a vibrant, high-contrast **Neobrutalist** design system.
+Powered by [Walrus](https://walrus.xyz/) on Sui, utilizing gasless relayer infrastructure from [Tatum](https://tatum.io) and styled with a vibrant, high-contrast **Neobrutalist** design system.
 
 ---
 
@@ -98,4 +98,4 @@ This project is submitted to the **Sui x Walrus Hackathon**, targetting:
 
 ## 📄 License
 
-MIT © [ThrowIt Team](https://github.com/throwit-transfer)
+MIT © [ThrowIt Team](https://github.com/stlkrdumb/throwit)
