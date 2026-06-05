@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Tatum endpoint configuration
-const TATUM_RPC_URL = process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-testnet-rpc.gateway.tatum.io';
-
 export async function POST(request: NextRequest) {
   try {
     // Get the API key from headers or query params
@@ -15,11 +12,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Determine the network requested (mainnet or testnet)
+    const requestedNetwork = request.headers.get('x-sui-network') || process.env.NEXT_PUBLIC_SUI_NETWORK || 'testnet';
+    
+    // Select Tatum URL dynamically
+    const tatumRpcUrl = process.env.NEXT_PUBLIC_TATUM_RPC || (requestedNetwork === 'mainnet'
+      ? 'https://sui-mainnet.gateway.tatum.io'
+      : 'https://sui-testnet.gateway.tatum.io');
+
     // Parse the JSON-RPC request
     const body = await request.json();
     
     // Forward the request to Tatum's RPC endpoint
-    const response = await fetch(TATUM_RPC_URL, {
+    const response = await fetch(tatumRpcUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

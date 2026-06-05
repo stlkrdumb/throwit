@@ -1,7 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server';
+import https from 'https';
+import http from 'http';
+import { parse } from 'url';
 
-// Disable SSL certificate validation for proxy requests to avoid operator SSL issues
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+// Helper function to perform the HTTP/HTTPS request using node's built-in modules
+function requestWithNode(
+  targetUrl: string,
+  method: string,
+  headers: Record<string, string>,
+  body: Buffer | undefined
+): Promise<{ status: number; headers: Record<string, string>; body: Buffer }> {
+  return new Promise((resolve, reject) => {
+    const parsedUrl = parse(targetUrl);
+    const isHttps = parsedUrl.protocol === 'https:';
+    const requestModule = isHttps ? https : http;
+
+    const options: http.RequestOptions & https.RequestOptions = {
+      method,
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (isHttps ? 443 : 80),
+      path: parsedUrl.path || '/',
+      headers,
+      // Disables TLS unauthorized rejection specifically for this connection
+      rejectUnauthorized: false,
+    };
+
+    const req = requestModule.request(options, (res) => {
+      const chunks: Buffer[] = [];
+      res.on('data', (chunk) => {
+        chunks.push(Buffer.from(chunk));
+      });
+      res.on('end', () => {
+        const resBody = Buffer.concat(chunks);
+        const resHeaders: Record<string, string> = {};
+        for (const [key, val] of Object.entries(res.headers)) {
+          if (val !== undefined) {
+            resHeaders[key] = Array.isArray(val) ? val.join(', ') : val;
+          }
+        }
+        resolve({
+          status: res.statusCode || 200,
+          headers: resHeaders,
+          body: resBody,
+        });
+      });
+    });
+
+    req.on('error', (err) => {
+      reject(err);
+    });
+
+    if (body) {
+      req.write(body);
+    }
+    req.end();
+  });
+}
 
 export async function PUT(request: NextRequest) {
   return handleProxy(request);
@@ -40,32 +94,26 @@ async function handleProxy(request: NextRequest) {
       }
     });
 
-    // 2. Read request body as ArrayBuffer
+    // 2. Read request body as Buffer
     const bodyBuffer = await request.arrayBuffer();
+    const body = bodyBuffer.byteLength > 0 ? Buffer.from(bodyBuffer) : undefined;
 
-    // 3. Forward request to target Walrus node server-side
-    const response = await fetch(targetUrl, {
-      method: request.method,
-      headers,
-      body: bodyBuffer.byteLength > 0 ? bodyBuffer : undefined,
-    });
+    // 3. Forward request using Node's standard module (specifically disabling TLS check)
+    const proxyResponse = await requestWithNode(targetUrl, request.method, headers, body);
 
     // 4. Copy response headers, ensuring CORS is enabled
     const responseHeaders: Record<string, string> = {
       'Access-Control-Allow-Origin': '*',
     };
-    response.headers.forEach((value, key) => {
+    for (const [key, value] of Object.entries(proxyResponse.headers)) {
       const lowerKey = key.toLowerCase();
       if (lowerKey !== 'access-control-allow-origin') {
         responseHeaders[key] = value;
       }
-    });
+    }
 
-    // 5. Read response body
-    const resBuffer = await response.arrayBuffer();
-
-    return new NextResponse(resBuffer, {
-      status: response.status,
+    return new NextResponse(new Uint8Array(proxyResponse.body), {
+      status: proxyResponse.status,
       headers: responseHeaders,
     });
   } catch (error) {

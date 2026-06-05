@@ -1,5 +1,5 @@
 import { WalrusClient } from '@mysten/walrus';
-import { SuiGrpcClient, GrpcWebFetchTransport } from '@mysten/sui/grpc';
+import { SuiJsonRpcClient, JsonRpcHTTPTransport } from '@mysten/sui/jsonRpc';
 import { Signer } from '@mysten/sui/cryptography';
 import { config, getRpcHeaders } from './config';
 
@@ -9,13 +9,15 @@ const WALRUS_WASM_URL =
   'https://cdn.jsdelivr.net/npm/@mysten/walrus-wasm@latest/web/walrus_wasm_bg.wasm';
 
 function getClientConfig() {
-  const transport = new GrpcWebFetchTransport({
-    baseUrl: config.rpc,
-    meta: getRpcHeaders(),
+  const transport = new JsonRpcHTTPTransport({
+    url: config.rpc,
+    rpc: {
+      headers: getRpcHeaders(),
+    },
   });
   return {
     network: config.network,
-    suiClient: new SuiGrpcClient({
+    suiClient: new SuiJsonRpcClient({
       network: config.network,
       transport,
     }),

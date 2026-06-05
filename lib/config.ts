@@ -5,10 +5,10 @@ const network = (process.env.NEXT_PUBLIC_SUI_NETWORK ?? 'testnet') as 'testnet' 
 
 export function getActiveRpcUrl(net: 'testnet' | 'mainnet'): string {
   if (typeof window === 'undefined') {
-    // SSR default: use Tatum SUI gRPC Gateway
+    // SSR default: use Tatum SUI JSON-RPC Gateway
     return net === 'mainnet'
-      ? (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-mainnet-grpc.gateway.tatum.io')
-      : (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-testnet-grpc.gateway.tatum.io');
+      ? (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-mainnet.gateway.tatum.io')
+      : (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-testnet.gateway.tatum.io');
   }
 
   const provider = localStorage.getItem('throwit_rpc_provider') || 'official';
@@ -17,8 +17,8 @@ export function getActiveRpcUrl(net: 'testnet' | 'mainnet'): string {
       ? 'https://fullnode.mainnet.sui.io:443'
       : 'https://fullnode.testnet.sui.io:443';
   } else {
-    // Default to Tatum SUI gRPC Gateway (via local proxy to bypass CORS)
-    return `${window.location.origin}/api/tatum-grpc-proxy`;
+    // Default to Tatum SUI JSON-RPC Gateway (via local proxy to bypass CORS)
+    return `${window.location.origin}/api/tatum-proxy`;
   }
 }
 
@@ -38,28 +38,38 @@ export function getStorageApiKey(): string {
 }
 
 export function getRpcHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'x-sui-network': config.network,
+  };
+
   if (typeof window === 'undefined') {
     const envKey = process.env.NEXT_PUBLIC_TATUM_API_KEY;
-    return envKey ? { 'x-api-key': envKey } : {};
+    if (envKey) headers['x-api-key'] = envKey;
+    return headers;
   }
 
   const provider = localStorage.getItem('throwit_rpc_provider') || 'official';
   if (provider === 'official') {
-    return {};
+    return headers;
   }
 
   // Storage API always uses mainnet key; RPC may use testnet or mainnet
   const isMainnetNetwork = config.network === 'mainnet';
   const storageKey = getStorageApiKey();
-  if (storageKey) return { 'x-api-key': storageKey };
+  if (storageKey) {
+    headers['x-api-key'] = storageKey;
+    return headers;
+  }
 
   // Fallback: use environment API key (may be testnet or mainnet)
   const envKey = isMainnetNetwork 
     ? process.env.NEXT_PUBLIC_TATUM_API_KEY_MAINNET
     : process.env.NEXT_PUBLIC_TATUM_API_KEY_TESTNET;
-  if (envKey) return { 'x-api-key': envKey };
+  if (envKey) {
+    headers['x-api-key'] = envKey;
+  }
 
-  return {};
+  return headers;
 }
 
 export const config = {
