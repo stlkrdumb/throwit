@@ -59,7 +59,7 @@ export default function Home() {
 
           <div
             ref={flowRef}
-            className="grid grid-cols-1 sm:grid-cols-4 gap-4 p-6 rounded-[var(--neo-radius-md)] border-[3px] border-black bg-white relative overflow-hidden neo-shadow-lg"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 rounded-[var(--neo-radius-md)] border-[3px] border-black bg-[var(--neo-surface)] relative overflow-hidden neo-shadow-lg"
           >
             {[
               {
@@ -87,17 +87,22 @@ export default function Home() {
                 desc: "Receiver's browser retrieves and decrypts the bytes.",
               },
             ].map((item, index) => (
-              <div key={item.step} className="flex flex-col gap-3 relative text-left p-4 rounded-[var(--neo-radius-sm)] border-2 border-slate-200 hover:border-black transition-all neo-hover-lift">
+              <div key={item.step} className="flex flex-col gap-3 text-left p-4 rounded-[var(--neo-radius-sm)] border-2 border-black bg-[var(--neo-surface-hover)] hover:bg-white transition-colors neo-active-press">
                 <div className="flex items-center justify-between">
-                  <div className="h-10 w-10 rounded-[var(--neo-radius-sm)] bg-[var(--neo-pink)] border-3 border-black flex items-center justify-center neo-shadow-sm">
+                  <div className="h-10 w-10 rounded-[var(--neo-radius-sm)] bg-[var(--neo-pink)] border-2 border-black flex items-center justify-center neo-shadow-sm">
                     <item.icon className="h-5 w-5 text-white" />
                   </div>
-                  {index < 3 && (
-                    <ArrowRight className="hidden sm:block h-5 w-5 text-[var(--neo-text-muted)] absolute right-[-18%] top-1/2 -translate-y-1/2 font-black" style={{ fontFamily: 'var(--font-neo-display)' }} />
-                  )}
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[var(--neo-text-primary)] flex items-center gap-1.5 uppercase">{item.title}</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black text-[var(--neo-pink)] tracking-wider">{item.step}</span>
+                    <h3 className="text-xs font-bold text-[var(--neo-text-primary)] uppercase">{item.title}</h3>
+                  </div>
+                  {index < 3 && (
+                    <div className="my-2 flex items-center justify-end">
+                      <ArrowRight className="h-4 w-4 text-black" />
+                    </div>
+                  )}
                   <p className="text-[11px] text-[var(--neo-text-muted)] mt-1 leading-relaxed">{item.desc}</p>
                 </div>
               </div>
@@ -126,7 +131,7 @@ export default function Home() {
           ].map((item, idx) => (
             <div
               key={item.title}
-              className="p-5 rounded-[var(--neo-radius-md)] border-[3px] border-black bg-white flex flex-col gap-3.5 neo-shadow-lg hover:-translate-y-[2px] transition-all duration-100"
+              className="p-5 rounded-[var(--neo-radius-md)] border-[3px] border-black bg-[var(--neo-surface)] flex flex-col gap-3.5 neo-shadow-lg hover:-translate-y-[2px] transition-all duration-100"
               style={{
                 borderTop: idx === 0 ? '6px solid var(--neo-pink)' : idx === 1 ? '6px solid var(--neo-lime)' : '6px solid var(--neo-cyan)',
               }}

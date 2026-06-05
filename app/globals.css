@@ -1,9 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* ===== Font Imports ===== */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
 @custom-variant dark (&:is(.dark *));
 
 /* ===== Neobrutalist Theme Tokens ===== */
@@ -52,6 +49,11 @@
   --neo-surface-hover: oklch(0.09 0 0);  /* #161616 — hover states */
   --neo-text-primary: oklch(0.94 0 0);   /* #F0F0F0 — primary text */
   --neo-text-muted: oklch(0.53 0 0);     /* #888888 — secondary text */
+
+  /* Surface tones (neobrutalist cream palette) */
+  --neo-cream: oklch(0.94 0.01 70);       /* #F5F0E6 — page backgrounds */
+  --neo-surface: oklch(0.88 0.02 70);      /* #EDE8DC — card surfaces */
+  --neo-surface-hover: oklch(0.83 0.02 70);/* #E0DBCF — hover states */
 
   /* Accent neon colors */
   --neo-pink: oklch(0.67 0.25 350);      /* #FF4081 — primary CTAs, active */
