@@ -53,7 +53,7 @@ export default function Dashboard() {
   return (
     <div className="flex-1 w-full min-h-[100dvh] bg-slate-950 p-4 sm:p-6">
       {/* Top bar */}
-      <div className="max-w-3xl mx-auto mb-6 flex items-center justify-between">
+      <div className="max-w-5xl mx-auto mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-base font-semibold text-slate-100">Workspace</h1>
           <p className="text-[10px] text-slate-500 mt-0.5">Encrypted file sharing on Walrus · {account.address.slice(0, 6)}…{account.address.slice(-4)}</p>
@@ -67,9 +67,9 @@ export default function Dashboard() {
       </div>
 
       {/* Bento grid */}
-      <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-4">
+      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-[1fr_1.3fr] gap-4">
         {/* Upload Card */}
-        <div className="rounded-2xl border border-slate-800/60 bg-slate-900/30 backdrop-blur-sm p-6">
+        <div className="rounded-2xl border border-slate-800/60 bg-slate-900/30 backdrop-blur-sm p-6 min-h-[500px]">
           <UploadWrapper />
         </div>
 
