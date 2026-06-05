@@ -1,6 +1,8 @@
 // Single source of truth for network-aware configuration.
 // Never mix networks — testnet blobs can't be fetched from mainnet and vice versa.
 
+import { JsonRpcHTTPTransport, type JsonRpcTransport, type JsonRpcTransportRequestOptions } from '@mysten/sui/jsonRpc';
+
 const network = (process.env.NEXT_PUBLIC_SUI_NETWORK ?? 'testnet') as 'testnet' | 'mainnet';
 
 export function getActiveRpcUrl(net: 'testnet' | 'mainnet'): string {
@@ -86,4 +88,55 @@ if (process.env.NODE_ENV === 'development' && config.network === 'mainnet') {
   console.warn(
     '⚠️  Running in development mode on MAINNET. Consider switching to testnet.'
   );
+}
+
+export function getRpcFallbackUrls(net: 'testnet' | 'mainnet'): string[] {
+  const urls: string[] = [];
+  
+  // 1. Configured provider (Tatum proxy or official)
+  urls.push(getActiveRpcUrl(net));
+  
+  // 2. Official public Sui RPC
+  const officialUrl = net === 'mainnet'
+    ? 'https://fullnode.mainnet.sui.io:443'
+    : 'https://fullnode.testnet.sui.io:443';
+    
+  if (!urls.includes(officialUrl)) {
+    urls.push(officialUrl);
+  }
+  
+  // 3. Popular public RPC fallbacks for Mainnet
+  if (net === 'mainnet') {
+    urls.push('https://sui-mainnet.node.nodes.guru:443');
+    urls.push('https://mainnet.sui.rpcpool.com');
+  }
+  
+  return urls;
+}
+
+export class FallbackTransport implements JsonRpcTransport {
+  private transports: JsonRpcHTTPTransport[];
+
+  constructor(urls: string[], headers: Record<string, string>) {
+    this.transports = urls.map(url => new JsonRpcHTTPTransport({
+      url,
+      rpc: {
+        // Only pass custom authentication headers if the URL goes through the Tatum proxy or Tatum domain
+        headers: url.includes('tatum-proxy') || url.includes('tatum.io') ? headers : { 'x-sui-network': config.network },
+      }
+    }));
+  }
+
+  async request<T>(input: JsonRpcTransportRequestOptions): Promise<T> {
+    let lastError: any = null;
+    for (let i = 0; i < this.transports.length; i++) {
+      try {
+        return await this.transports[i].request<T>(input);
+      } catch (err) {
+        lastError = err;
+        console.warn(`[FallbackTransport] RPC Request failed on node ${i} (${this.transports[i].fetch.name || 'sui-rpc'}), trying next fallback...`, err);
+      }
+    }
+    throw lastError || new Error("All Sui RPC node transports failed");
+  }
 }

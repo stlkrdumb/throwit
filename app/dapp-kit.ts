@@ -1,17 +1,15 @@
 import { createDAppKit } from '@mysten/dapp-kit-react';
-import { SuiJsonRpcClient, JsonRpcHTTPTransport } from '@mysten/sui/jsonRpc';
-import { getActiveRpcUrl, getRpcHeaders } from '@/lib/config';
+import { SuiJsonRpcClient } from '@mysten/sui/jsonRpc';
+import { getRpcHeaders, FallbackTransport, getRpcFallbackUrls } from '@/lib/config';
 
 export const dAppKit = createDAppKit({
   networks: ['testnet', 'mainnet'],
   defaultNetwork: (process.env.NEXT_PUBLIC_SUI_NETWORK ?? 'testnet') as 'testnet' | 'mainnet',
   createClient: (network) => {
-    const transport = new JsonRpcHTTPTransport({
-      url: getActiveRpcUrl(network),
-      rpc: {
-        headers: getRpcHeaders(),
-      },
-    });
+    const transport = new FallbackTransport(
+      getRpcFallbackUrls(network),
+      getRpcHeaders()
+    );
     return new SuiJsonRpcClient({
       network,
       transport,

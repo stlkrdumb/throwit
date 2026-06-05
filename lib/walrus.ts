@@ -1,7 +1,7 @@
 import { WalrusClient } from '@mysten/walrus';
-import { SuiJsonRpcClient, JsonRpcHTTPTransport } from '@mysten/sui/jsonRpc';
+import { SuiJsonRpcClient } from '@mysten/sui/jsonRpc';
 import { Signer } from '@mysten/sui/cryptography';
-import { config, getRpcHeaders } from './config';
+import { config, getRpcHeaders, FallbackTransport, getRpcFallbackUrls } from './config';
 
 // WASM URL for blob encoding — needed for browser usage
 // Loaded from CDN in browser; Node.js fallback handled by SDK
@@ -9,12 +9,10 @@ const WALRUS_WASM_URL =
   'https://cdn.jsdelivr.net/npm/@mysten/walrus-wasm@latest/web/walrus_wasm_bg.wasm';
 
 function getClientConfig() {
-  const transport = new JsonRpcHTTPTransport({
-    url: config.rpc,
-    rpc: {
-      headers: getRpcHeaders(),
-    },
-  });
+  const transport = new FallbackTransport(
+    getRpcFallbackUrls(config.network),
+    getRpcHeaders()
+  );
   return {
     network: config.network,
     suiClient: new SuiJsonRpcClient({
