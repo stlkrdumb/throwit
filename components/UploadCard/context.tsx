@@ -7,7 +7,8 @@ import type { UploadErrorType, ExpiryOption } from '@/hooks/useFileUpload';
  * ────────────────────────────────────────────── */
 
 export interface UploadState {
-  fileInfo: { name: string; size: number } | null;
+  fileInfos: { name: string; size: number }[];
+  totalSize: number;
   step: 'idle' | 'selected' | 'encrypting' | 'uploading' | 'done' | 'error';
   selectedHours: number;
   shareLink: string | null;

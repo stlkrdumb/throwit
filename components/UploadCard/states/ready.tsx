@@ -1,31 +1,52 @@
 'use client';
 
-import { Clock3 } from 'lucide-react';
+import { Clock3, X } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { EXPIRY_OPTIONS, ExpiryOption } from '@/hooks/useFileUpload';
+import { EXPIRY_OPTIONS, ExpiryOption, formatFileSize } from '@/hooks/useFileUpload';
 import { useUploadContext } from '../context';
-import { FileInfoRow } from '../components/file-info';
 import { WalletButton } from '@/components/WalletButton';
 import { useCurrentAccount } from '@mysten/dapp-kit-react';
 
 export function ReadyState() {
   const { state, actions } = useUploadContext();
   const account = useCurrentAccount();
-  const { fileInfo, selectedHours } = state;
+  const { fileInfos, totalSize, selectedHours } = state;
   const { setSelectedHours, executeUpload, resetUpload } = actions;
 
-  if (!fileInfo) return null;
+  if (!fileInfos || fileInfos.length === 0) return null;
 
   return (
     <>
-      <FileInfoRow
-        name={fileInfo.name}
-        size={fileInfo.size}
-        variant="default"
-        onRemove={resetUpload}
-      />
+      {/* File list */}
+      <div className="space-y-2">
+        {fileInfos.map((info, i) => (
+          <div key={i} className="flex items-center gap-3 p-3 rounded-lg border border-slate-800 bg-slate-950/40 group hover:border-slate-700 transition-colors">
+            <span className="text-xs font-mono text-slate-600 w-5 shrink-0">{i + 1}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-slate-200 truncate">{info.name}</p>
+              <p className="text-xs text-slate-500">{formatFileSize(info.size)}</p>
+            </div>
+            {account ? (
+              <button
+                onClick={() => resetUpload()}
+                className="opacity-0 group-hover:opacity-100 h-7 w-7 rounded-md flex items-center justify-center hover:bg-red-500/10 transition-all shrink-0"
+                title="Remove all files"
+              >
+                <X className="h-3.5 w-3.5 text-slate-600" />
+              </button>
+            ) : null}
+          </div>
+        ))}
+      </div>
 
+      {/* Total */}
+      <div className="flex items-center justify-between text-xs px-1">
+        <span className="text-slate-500">{fileInfos.length} file{fileInfos.length > 1 ? 's' : ''}</span>
+        <span className="font-mono text-slate-400">{formatFileSize(totalSize)}</span>
+      </div>
+
+      {/* Expiry */}
       <div className="space-y-2">
         <label className="text-xs font-medium text-slate-400 flex items-center gap-1.5">
           <Clock3 className="h-3.5 w-3.5" />
@@ -50,7 +71,7 @@ export function ReadyState() {
             onClick={executeUpload}
             className="w-full text-sm font-medium bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all duration-200 active:translate-y-[1px]"
           >
-            Encrypt & Upload
+            Encrypt & Upload {fileInfos.length > 1 ? `(${fileInfos.length} files)` : ''}
           </Button>
         ) : (
           <div className="flex flex-col gap-3 p-4 rounded-xl border border-slate-800 bg-slate-950/40">

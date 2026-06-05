@@ -11,7 +11,8 @@ interface UploadProviderProps {
 
 export function UploadProvider({ children, onSave }: UploadProviderProps) {
   const {
-    fileInfo,
+    fileInfos,
+    totalSize,
     step,
     selectedHours,
     setSelectedHours,
@@ -32,7 +33,8 @@ export function UploadProvider({ children, onSave }: UploadProviderProps) {
   } = useFileUpload({ onSave });
 
   const state: UploadState = {
-    fileInfo,
+    fileInfos,
+    totalSize,
     step,
     selectedHours,
     shareLink,

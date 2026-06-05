@@ -24,10 +24,10 @@ export function IdleState() {
         </div>
         <div className="text-center">
           <p className="text-sm font-medium text-slate-300">
-            {isDragActive ? 'Drop it here' : 'Drag & drop or click to select'}
+            {isDragActive ? 'Drop files here' : 'Drag & drop or click to select'}
           </p>
-          <p className="text-xs text-slate-500 mt-1 max-w-[200px]">
-            Max 100 MB. Encrypted in browser before upload.
+          <p className="text-xs text-slate-500 mt-1 max-w-[220px]">
+            Up to 10 files, 100 MB each. Multi-file uploads auto-ZIP.
           </p>
         </div>
       </div>

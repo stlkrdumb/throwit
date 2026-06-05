@@ -17,7 +17,7 @@ import { FileInfoRow } from '../components/file-info';
 
 export function CompleteState() {
   const { state, actions } = useUploadContext();
-  const { fileInfo, shareLink, copied } = state;
+  const { fileInfos, shareLink, copied } = state;
   const { handleCopy, resetUpload } = actions;
   const [qrOpen, setQrOpen] = useState(false);
 
@@ -39,8 +39,8 @@ export function CompleteState() {
       </div>
 
       {/* File info */}
-      {fileInfo && (
-        <FileInfoRow name={fileInfo.name} size={fileInfo.size} variant="success" />
+      {fileInfos.length > 0 && (
+        <FileInfoRow name={fileInfos[0].name} size={fileInfos[0].size} variant="success" />
       )}
 
       {/* Share link */}
@@ -88,7 +88,7 @@ export function CompleteState() {
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-medium text-slate-300 hover:bg-slate-700 transition-colors"
         >
           <ArrowLeftRight className="h-3.5 w-3.5" />
-          Upload Another File
+          Upload New Files
         </button>
       </div>
 
