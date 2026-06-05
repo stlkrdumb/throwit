@@ -19,7 +19,7 @@ const stageIcons: Record<UploadStage, React.ReactNode> = {
   encrypting: <FileLock className="h-6 w-6 text-emerald-400" />,
   registering: <Wallet className="h-6 w-6 text-emerald-400" />,
   uploading: <CloudUpload className="h-6 w-6 text-emerald-400" />,
-  certifying: <Wallet className="h-6 w-6 text-emerald-400" />,
+  certifying: <ShieldCheck className="h-6 w-6 text-emerald-400" />,
   confirming: <CloudCheck className="h-6 w-6 text-emerald-400" />,
 };
 
