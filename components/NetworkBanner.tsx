@@ -5,7 +5,7 @@ import { config } from '@/lib/config';
 import { useAuth } from '@/context/AuthContext';
 
 export function NetworkBanner() {
-  const { authMode, setAuthMode, walletStatus, account } = useAuth();
+  const { authMode, setAuthMode, walletStatus, account, apiKeyConfigured, setApiKeyConfigured } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [showKeyInput, setShowKeyInput] = useState(false);
   const [tempKey, setTempKey] = useState('');
@@ -25,14 +25,17 @@ export function NetworkBanner() {
     const trimmed = tempKey.trim();
     if (trimmed) {
       localStorage.setItem('throwit_tatum_api_key', trimmed);
+      setApiKeyConfigured(true);
     } else {
       localStorage.removeItem('throwit_tatum_api_key');
+      setApiKeyConfigured(false);
     }
     setShowKeyInput(false);
   };
 
   const handleClearKey = () => {
     localStorage.removeItem('throwit_tatum_api_key');
+    setApiKeyConfigured(false);
     setTempKey('');
     setShowKeyInput(false);
   };
@@ -81,7 +84,7 @@ export function NetworkBanner() {
             <button
               onClick={() => setShowKeyInput(true)}
               className={`px-2 py-0.5 border border-black rounded-[2px] text-[9px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer shadow-[1px_1px_0_#000] ${
-                localStorage.getItem('throwit_tatum_api_key') || process.env.NEXT_PUBLIC_TATUM_API_KEY_MAINNET
+                apiKeyConfigured || process.env.NEXT_PUBLIC_TATUM_API_KEY_MAINNET
                   ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                   : 'bg-yellow-400 text-black hover:bg-yellow-300 animate-pulse'
               }`}
@@ -168,7 +171,7 @@ export function NetworkBanner() {
           <button
             onClick={() => {
               setAuthMode('gasless');
-              if (!localStorage.getItem('throwit_tatum_api_key')) {
+              if (!apiKeyConfigured) {
                 setShowKeyInput(true);
               }
             }}
@@ -187,7 +190,7 @@ export function NetworkBanner() {
           <button
             onClick={() => setShowKeyInput(true)}
             className={`px-2 py-0.5 border border-black rounded-[2px] text-[9px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer shadow-[1px_1px_0_#000] ${
-              localStorage.getItem('throwit_tatum_api_key') || process.env.NEXT_PUBLIC_TATUM_API_KEY_MAINNET
+              apiKeyConfigured || process.env.NEXT_PUBLIC_TATUM_API_KEY_MAINNET
                 ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                 : 'bg-yellow-400 text-black hover:bg-yellow-300 animate-pulse'
             }`}

@@ -9,16 +9,12 @@ import { useAuth } from '@/context/AuthContext';
 export function LandingCTA() {
   const account = useCurrentAccount();
   const router = useRouter();
-  const { setShowLoginDialog } = useAuth();
+  const { setShowLoginDialog, apiKeyConfigured } = useAuth();
 
   const [mounted, setMounted] = useState(false);
-  const [apiKeyConfigured, setApiKeyConfigured] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== 'undefined') {
-      setApiKeyConfigured(!!localStorage.getItem('throwit_tatum_api_key'));
-    }
   }, []);
 
   if (!mounted) {

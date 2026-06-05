@@ -54,6 +54,7 @@ export function LoginButton() {
     }
     localStorage.setItem('throwit_tatum_api_key', trimmed);
     setApiKeyConfigured(true);
+    setSavedKey(trimmed);
     setAuthMode('gasless');
     setShowLoginDialog(false);
     setShowKeyInput(false);
