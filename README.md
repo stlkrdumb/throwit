@@ -1,20 +1,35 @@
-# 🎒 ThrowIt — Decentralized File Transfer
+# 🎒 ThrowIt — Zero-Knowledge Gasless File Transfer
 
-> Upload files. E2E encrypted. Share via link. No accounts, no subscriptions.
+> Upload files. E2E encrypted. Share via link. No wallets required, zero gas fees.
 
-Powered by [Walrus](https://walrus.site) on Sui, with RPC infrastructure from [Tatum](https://tatum.io).
+Powered by [Walrus](https://walrus.site) on Sui, utilizing gasless relayer infrastructure from [Tatum](https://tatum.io) and styled with a vibrant, high-contrast **Neobrutalist** design system.
 
 ---
 
-## Demo
+## 🚀 Key Features
 
-1. **Select** a file (drag & drop or click)
-2. **Pick expiry** — 1h, 3h, 1d, or 3d
-3. **Upload** — file encrypts locally via Web Crypto API, then stores on Walrus
-4. **Share** — copy the generated link (key lives in URL fragment only)
-5. **Download** — recipient opens link → auto-decrypts in browser → triggers download
+*   **Tatum Gasless Mode (Main Feature):** Upload and transfer files instantly without needing a crypto wallet, signature popups, or gas fees. Tatum automatically handles and sponsors all on-chain storage transactions gaslessly in the background.
+*   **100% Zero-Knowledge Privacy:** Client-side encryption using military-grade `AES-256-GCM`. The decryption keys, initialization vectors, and file names reside strictly in the URL hash fragment (`#key.iv.filename`), which is never sent to any server.
+*   **In-Browser ZIP Compression:** Drag-and-drop multiple files or entire folder directories. The app bundles them into a single secure `.zip` package client-side before encrypting and uploading.
+*   **Sui On-Chain Mode:** Web3 power users can switch to on-chain mode, connect their Sui wallet, directly sponsor storage epochs, and claim a full WAL deposit refund when they delete files.
+*   **Active Shares Dashboard:** A drawer interface that tracks active uploads, formats file metadata, generates QR codes for easy mobile scanning, and performs on-chain self-destruct transactions.
 
-## Architecture
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Tool | Purpose |
+|-------|------|---------|
+| **Framework** | Next.js 16 (App Router) | React 19, fast static optimization, Turbopack builds |
+| **Aesthetics** | Vanilla CSS + Tailwind v4 | Premium **Neobrutalist** UI featuring hard black borders, flat shadows, and dynamic responsive states |
+| **Web3 Relayer** | Tatum Storage API | Powers the core gasless upload relayers |
+| **RPC & Gateway** | Tatum RPC Proxy | Redundant JSON-RPC & gRPC routing with automated fallbacks to official Sui nodes |
+| **Storage & Chain** | `@mysten/walrus` & `@mysten/sui` | Decentralized blob storage and on-chain registrations |
+| **Cryptography** | Web Crypto API + JSZip | Native client-side AES-GCM 256-bit encryption & browser compression |
+
+---
+
+## 📐 Architecture
 
 ```
 User Browser                          Server (Vercel)                    Walrus Network
@@ -28,122 +43,59 @@ User Browser                          Server (Vercel)                    Walrus 
 └──────────────┘                      └─────────────┘
 ```
 
-**Key security properties:**
-- **Client-side encryption only** — Web Crypto API AES-GCM. No server ever sees plaintext.
-- **Keys in URL fragment** — `#` is never sent to any server (browser-only). The key, IV, and filename live exclusively in the recipient's browser.
-- **No database** — blob metadata stored on-chain via Walrus. Share links are self-contained.
+---
 
-## Tech Stack
+## ⚡ Setup & Installation
 
-| Layer | Tool | Why |
-|-------|------|-----|
-| Framework | Next.js 16 (App Router) | Turbopack default, React 19, fast builds |
-| Styling | Tailwind CSS v4 + shadcn/ui | Premium UI, zero custom CSS |
-| Wallet | `@mysten/dapp-kit-react` | Standard multi-wallet selector modal with custom UI |
-| Blockchain | @mysten/sui (SDK v2) | gRPC client, PTB construction |
-| Storage | @mysten/walrus | Decentralized blob storage on Sui |
-| RPC | Tatum gateway | Qualifies for Tatum Tools prize |
-| Encryption | Web Crypto API | Native AES-GCM 256-bit, zero deps |
-
-## Cost Comparison
-
-| Service | 1 GB / 30 days | E2E Encrypted | Decentralized |
-|---------|---------------|---------------|---------------|
-| WeTransfer Pro | $13/mo + trust | ❌ | ❌ |
-| Arweave | ~$10 one-time | ❌ | ✅ |
-| **ThrowIt (this app)** | **~$0.01** | **✅** | **✅** |
-
-## Setup
+Ensure you have Node.js 20+ installed.
 
 ```bash
-# Node.js 20+ required (Next.js 16)
-node -v
-
 # Clone & install
-git clone <repo> && cd throwit
+git clone <repo-url> && cd throwit
 cp .env.local.example .env.local
 npm install
 
-# Fund testnet wallet with SUI + WAL from faucets:
-# https://faucet.sui.io/
-# https://faucet.wal.app/
-
-# Dev server (Turbopack, ~10x faster HMR)
+# Run dev server (with Turbopack)
 npm run dev
 ```
 
-## Environment Strategy
+### Environment Settings (`.env.local`)
+Configure the following keys for local development on Mainnet:
+*   `NEXT_PUBLIC_SUI_NETWORK=mainnet`
+*   `NEXT_PUBLIC_TATUM_RPC=https://sui-mainnet.gateway.tatum.io`
+*   `NEXT_PUBLIC_TATUM_API_KEY_MAINNET=your_tatum_api_key`
+*   `NEXT_PUBLIC_WALRUS_AGGREGATOR=https://aggregator.walrus.site`
 
-| Environment | Network | RPC | Use Case |
-|-------------|---------|-----|----------|
-| Development (`npm run dev`) | Sui Testnet | Tatum testnet gateway | Free iteration, faucets |
-| Production (Vercel) | Sui Mainnet | Tatum mainnet gateway | Live deployment, prizes |
+---
 
-`.env.local.example` has public values — copy to `.env.local` for local dev.  
-`.env.production` is committed (mainnet URLs only).
-
-## Project Structure
-
-```
-throwit/
-├── app/
-│   ├── layout.tsx            # Root layout + Providers wrapper
-│   ├── providers.tsx         # Client-side: QueryClient + DAppKitProvider + WalletButton
-│   ├── page.tsx              # Landing page (hero + upload card)
-│   └── d/[blobId]/page.tsx  # Download page (fetch → decrypt → download)
-├── components/
-│   ├── UploadCard.tsx        # Drag-drop, encrypt, upload flow UI
-│   └── ui/                   # shadcn/ui components
-├── lib/
-│   ├── config.ts             # Network-aware config (single source of truth)
-│   ├── crypto.ts             # AES-GCM encrypt/decrypt helpers
-│   ├── walrus.ts             # WalrusClient upload/download helpers
-│   └── link.ts               # Share link encode/decode
-├── .env.local.example        # Template for teammates
-├── .env.production           # Committed (public mainnet values)
-└── tailwind.config.ts        # Tailwind v4 + shadcn integration
-```
-
-## How It Works
+## 💡 How It Works
 
 ### Upload Flow
-1. User selects file via drag-drop
-2. Browser generates AES-256-GCM key (Web Crypto API)
-3. File encrypted client-side: `encrypt(plaintext, key)` → `ciphertext + iv`
-4. Encrypted blob uploaded to Walrus: `walrusClient.writeBlob({ blob, epochs, signer })`
-5. Share link constructed: `{appUrl}/d/{blobId}#{base64url(key)}.{base64url(iv)}.{filename}`
-   - URL fragment (`#`) is never sent to any server → key stays client-only
+1. The user drops files or folders onto the dropzone.
+2. Multiple files are bundled into a `.zip` archive directly in the browser.
+3. The Web Crypto API generates a cryptographically secure key and initialization vector (IV) to encrypt the archive using AES-256-GCM.
+4. **Tatum Gasless Mode:** The encrypted payload is sent to Tatum's Storage API. Tatum automatically books the Walrus storage slot on the Sui mainnet gaslessly, uploads the slivers, and returns the certified `blobId`.
+5. **Sui On-Chain Mode:** Alternatively, the user connects their wallet, pays the temporary epoch storage deposit, uploads slivers to storage nodes directly, and registers the certificate.
+6. A share link is generated: `{appUrl}/d/{blobId}#{keyB64}.{ivB64}.{filename}`. The `#` hash parameters stay on the client and are never sent over the network.
 
 ### Download Flow
-1. Recipient opens share link
-2. Page reads `key`, `iv`, and `filename` from `window.location.hash`
-3. `walrusClient.readBlob({ blobId })` → returns ciphertext
-4. `decrypt(ciphertext, key, iv)` → plaintext
-5. Browser triggers download via `URL.createObjectURL(blob) + <a download>` click
+1. The recipient opens the share link.
+2. The page parses the decryption key, IV, and filename from the URL hash.
+3. The page fetches the encrypted file from Walrus (directly via HTTPS nodes or via the Tatum proxy).
+4. The file is decrypted locally in the recipient's browser.
+5. The browser triggers a save file dialog to download the decrypted plaintext data.
 
-## Hackathon Submission
+---
 
-### Target Categories
-- **Walrus Prize** — core of the product (blob storage is the primary feature)
-- **Best Use of Tatum Tools** ($200) — Tatum RPC gateway for blockchain access
-- **Mainnet Bonus** — production deployment uses Sui mainnet
-- **X / LinkedIn Sharing Bonus** — tag @Tatum_io @WalrusFoundation @SuiNetwork
+## 🏆 Hackathon Submission
 
-### Notes
-- Testnet deployment: blobs stored on testnet, links work on testnet only
-- Mainnet deployment: blobs stored on mainnet, links work on mainnet only
-- Networks are never mixed — deployment URL implicitly defines network
+This project is submitted to the **Sui x Walrus Hackathon**, targetting:
+*   **Walrus Track:** Core decentralized storage integration.
+*   **Tatum Track:** Integration of Tatum Storage API and Tatum RPC routing for Gasless Mode execution.
+*   **Mainnet Bonus:** Fully configured and optimized to run directly on Sui Mainnet.
 
-## Future Roadmap
-- [ ] SUI paywall to unlock downloads
-- [ ] QR code generator for share links
-- [ ] Multi-recipient uploads with per-recipient keys
-- [ ] Seal threshold encryption (multi-party decryption)
-- [ ] Mobile app via React Native + wallet-standard-first
+---
 
-## Credits
+## 📄 License
 
-- Walrus docs: https://docs.wal.app
-- Tatum docs: https://docs.tatum.io
-- Sui SDK v2: https://sdk.mystenlabs.com/sui
-- dApp Kit: https://sdk.mystenlabs.com/dapp-kit
+MIT © [ThrowIt Team](https://github.com/throwit-transfer)
