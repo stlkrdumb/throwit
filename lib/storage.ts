@@ -65,14 +65,8 @@ export async function uploadToStorage(
   jobId?: string;
   status?: UploadStatus;
 }> {
-  const provider = getActiveStorageProvider();
-
-  if (provider === 'tatum') {
-    return uploadViaTatum(file, apiKey);
-  } else {
-    // Walrus mode - delegated to original flow with signer
-    throw new Error('Walrus direct upload requires wallet signer. Use executeUpload() instead.');
-  }
+  // Always upload via Tatum since Walrus direct upload is handled by executeUpload() with signer.
+  return uploadViaTatum(file, apiKey);
 }
 
 /**

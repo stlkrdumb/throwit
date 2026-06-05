@@ -19,6 +19,7 @@ import {
   instantDeleteUpload,
 } from '@/lib/storage';
 import { config, getStorageApiKey } from '@/lib/config';
+import { useAuth } from '@/context/AuthContext';
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB per file
 const MAX_TOTAL_SIZE = 500 * 1024 * 1024; // 500 MB total
@@ -51,6 +52,7 @@ export type UploadErrorType =
   | 'network-timeout'
   | 'insufficient-funds'
   | 'blob-encoding'
+  | 'walrus-nodes-error'
   | 'unknown';
 
 interface SelectedFile {
@@ -72,6 +74,8 @@ export interface UploadedFileMeta {
   keyB64: string;
   ivB64: string;
   zipMeta?: ZipPackMeta;
+  jobId?: string;
+  storageProvider?: 'walrus' | 'tatum';
 }
 
 export interface UseFileUploadOptions {
@@ -114,6 +118,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
   const dAppKit = useDAppKit();
   const account = useCurrentAccount();
   const suiClient = useCurrentClient();
+  const { authMode } = useAuth();
 
   const filesRef = useRef<SelectedFile[]>([]);
   const [step, setStep] = useState<UploadStep>('idle');
@@ -176,7 +181,12 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
   // --- Core upload — ZIP-only for packs, direct encrypt for single ---
   const executeUpload = useCallback(async (): Promise<void> => {
     if (filesRef.current.length === 0) throw new Error('No files selected');
-    if (!account) { toast.error('Connect your wallet first'); return; }
+    
+    const isTatumMode = authMode === 'gasless';
+    if (!isTatumMode && !account) {
+      toast.error('Connect your wallet first');
+      return;
+    }
 
     setStep('encrypting');
     setError(null);
@@ -224,8 +234,8 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
         finalIv = encResult.iv;
       }
 
-      // Check storage provider (mainnet uses Tatum Storage, testnet uses Walrus client)
-      const isTatumMode = config.network === 'mainnet';
+      // Check storage provider (determined by authMode context)
+      // isTatumMode is already computed above
 
       if (isTatumMode) {
         // ─── TATUM STORAGE MODE ──────────────────────────────────────────────
@@ -321,11 +331,14 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
             entryCount: filesRef.current.length,
             entries: filesRef.current.map((f) => ({ name: f.file.name, size: f.file.size })),
           } : undefined,
+          jobId,
+          storageProvider: 'tatum',
         };
 
         if (onSave) onSave(tatumUpload);
         else {
-          const key = `throwit_uploads_${account.address}`;
+          const historyAddress = account?.address || 'gasless';
+          const key = `throwit_uploads_${historyAddress}`;
           const list = JSON.parse(localStorage.getItem(key) || '[]');
           list.unshift(tatumUpload); localStorage.setItem(key, JSON.stringify(list));
         }
@@ -348,7 +361,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
 
         setProgress(50);
         setProgressMessage('Registering on-chain…');
-        const regTx = flow.register({ epochs, deletable: true, owner: account.address });
+        const regTx = flow.register({ epochs, deletable: true, owner: account!.address });
         toast.info('Approve registration in your wallet…');
         const regResult = await dAppKit.signAndExecuteTransaction({ transaction: regTx });
         if (regResult.FailedTransaction) throw new Error(regResult.FailedTransaction.status.error?.message ?? 'Registration failed.');
@@ -392,11 +405,13 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
           entryCount: filesRef.current.length,
           entries: filesRef.current.map((f) => ({ name: f.file.name, size: f.file.size })),
         } : undefined,
+        storageProvider: 'walrus',
       };
 
       if (onSave) onSave(upload);
       else {
-        const key = `throwit_uploads_${account.address}`;
+        const historyAddress = account?.address || 'gasless';
+        const key = `throwit_uploads_${historyAddress}`;
         const list = JSON.parse(localStorage.getItem(key) || '[]');
         list.unshift(upload); localStorage.setItem(key, JSON.stringify(list));
       }
@@ -414,7 +429,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
       setErrorType(classifyError(err));
       setStep('error');
     }
-  }, [account, dAppKit, selectedHours, suiClient, totalSize, options]);
+  }, [account, authMode, dAppKit, selectedHours, suiClient, totalSize, options]);
 
   const retryUpload = useCallback(async () => {
     setError(null);
@@ -460,7 +475,8 @@ function classifyError(err: unknown): UploadErrorType {
     const msg = err.message.toLowerCase();
     if (msg.includes('rejected') || msg.includes('cancelled') || msg.includes('denied')) return 'wallet-rejected';
     if (msg.includes('insufficient') || msg.includes('balance') || msg.includes('gas')) return 'insufficient-funds';
-    if (msg.includes('timeout') || msg.includes('network') || msg.includes('fetch failed')) return 'network-timeout';
+    if (msg.includes('timeout')) return 'network-timeout';
+    if (msg.includes('fetch failed') || msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('ssl') || msg.includes('cert')) return 'walrus-nodes-error';
     if (msg.includes('encode') || msg.includes('blob') || msg.includes('size')) return 'blob-encoding';
   }
   return 'unknown';

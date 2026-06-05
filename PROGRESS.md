@@ -1,6 +1,6 @@
 # throwit — Project Progress
 
-**Last updated:** 2026-06-05  
+**Last updated:** 2026-06-05 (Auth Mode Bug — fixed; see 🐛 below)  
 **Branch:** `alpha`  
 **Next.js:** 16.2.7 (Turbopack) | **Sui:** Testnet | **Storage:** Walrus
 
@@ -44,7 +44,7 @@
 | **WalletButton** (`components/WalletButton/`) | ✅ Complete | Dropdown trigger + connect wallet dialog. Neo-brutalist styling. |
 | **MyUploads** (`components/MyUploads/`) | ✅ Complete | File list strips with type colors, ZIP pack preview, delete action. |
 | **LandingCTA** (`components/LandingCTA.tsx`) | ✅ Complete | CTA button + wallet connect dialog for landing page. |
-| **NetworkBanner** (`components/NetworkBanner.tsx`) | ✅ Complete | Yellow dev-mode indicator pill (bottom-right). |
+| **NetworkBanner** (`components/NetworkBanner.tsx`) | ✅ Complete | Bottom-bar auth-mode indicator. Fixed: now correctly nested inside `<AuthProvider>` so it reflects live `authMode` state from `LoginButton` (see 🐛 bug report below). |
 
 ### Design System
 | Token | Status | Notes |
@@ -68,6 +68,125 @@
 ### Build Fixes Applied
 - **Font import moved:** From CSS `@import` → Next.js `<head>` `<link>` tag (fixes Turbopack `@import` ordering error).
 - **Ring color fix:** Replaced `@apply ring-cyan` with plain CSS `outline-color: var(--neo-cyan)` (Tailwind can't resolve custom vars in `@apply`).
+
+### 🐛 **BUG REPORT: Auth Mode Stuck on RPC After API Key Login**
+
+**Date:** 2026-06-05  
+**Severity:** High (P0 — Core feature broken)  
+**Status:** ✅ **FIXED**  
+**Affected Files:**
+- `app/layout.tsx`
+- `app/providers.tsx`
+- `context/AuthContext.tsx`
+- `components/LoginButton.tsx`
+
+#### Symptom
+User enters a Tatum API key in `LoginButton`, clicks **Login**, the dialog closes — but the bottom bar (`NetworkBanner`) continues to display:
+
+```
+🟢 AUTH MODE: TATUM RPC (on-chain)
+```
+
+instead of the expected pulsing-yellow:
+
+```
+🟡 AUTH MODE: TATUM GASLESS
+```
+
+The same stuck-RPC state occurred across page navigations and on full reload (after entering the API key for the first time).
+
+#### Root Cause
+**`NetworkBanner` was rendered OUTSIDE the React component tree that contained `AuthProvider`.**
+
+In `app/layout.tsx`, the body had:
+
+```tsx
+<body>
+  <Providers>{children}</Providers>   {/* AuthProvider lives here */}
+  <NetworkBanner />                    {/* ← OUTSIDE! No context! */}
+</body>
+```
+
+Because `NetworkBanner` was a sibling of `<Providers>` (not a descendant), it was **never wrapped by `AuthProvider`**. Every call to `useAuth()` from `NetworkBanner` returned the **fallback context value** defined in `AuthContext.tsx`:
+
+```ts
+return {
+  authMode: 'rpc',           // ← hardcoded fallback
+  setAuthMode: () => {},      // ← no-op
+  apiKeyConfigured: false,
+  ...
+} as AuthContextType;
+```
+
+So no matter what `setAuthMode('gasless')` did inside `LoginButton`, `NetworkBanner` was reading from an entirely different (defaulted) context instance. The state update was succeeding — `NetworkBanner` simply had no way to observe it.
+
+#### Why Previous Fix Attempts Failed
+We iterated through several red herrings before finding the real issue:
+
+1. **Attempt 1: Removed `useEffect` auto-switch in `LoginButton`** — suspected of causing a circular state update. Removing it changed nothing.
+2. **Attempt 2: Made `apiKeyConfigured` a real `useState`** — replaced the inline `localStorage.getItem()` read with proper React state. Still didn't fix the bottom bar.
+3. **Attempt 3: Added `setApiKeyConfigured` to context** — added a direct setter for the API key state and called it from `handleApikeyLogin`. `LoginButton` updated correctly, but the bottom bar remained stuck.
+4. **Attempt 4: Refactored `AuthContext` with `hydrated` flag** — separated the React state setter (`setAuthModeState`) from the public API (`setAuthMode`) and added a hydration effect. Still didn't help.
+
+All of these were valid improvements to `AuthContext`, but none of them addressed the actual problem: **`NetworkBanner` was in a different React tree entirely.**
+
+#### The Fix
+Two surgical changes:
+
+**1. `app/layout.tsx`** — removed `<NetworkBanner />` from the body (it was outside the providers):
+
+```diff
+- <Providers>{children}</Providers>
+- <NetworkBanner />
++ <Providers>{children}</Providers>
+```
+
+**2. `app/providers.tsx`** — moved `<NetworkBanner />` INSIDE `<AuthProvider>`, after `<main>`:
+
+```diff
+  <AuthProvider>
+    <header>...<LoginButton /></header>
+    <main>{children}</main>
++   <NetworkBanner />
+  </AuthProvider>
+```
+
+That's it. Two lines of changes. The bottom bar now shares the same `AuthContext` as `LoginButton`, and the auth-mode state propagates correctly.
+
+#### Verification
+- ✅ Build passes (`npm run build`).
+- ✅ `NetworkBanner` is now a descendant of `<AuthProvider>` in the React tree.
+- ✅ When user enters an API key in `LoginButton`, the bottom bar flips from `TATUM RPC (on-chain)` (green dot) to `TATUM GASLESS` (pulsing yellow dot) instantly.
+- ✅ State persists across page navigation because the provider sits at the layout root.
+
+#### Lessons Learned
+1. **Provider boundaries matter.** Any component that consumes a React context must be rendered as a descendant of that context's provider. Sibling placement silently falls back to the default value with no warning.
+2. **Hardcoded fallback values can mask bugs.** The `useAuth()` fallback in `AuthContext.tsx` (returning `authMode: 'rpc'`) made `NetworkBanner` *look* like it was working — it just never updated. A safer default would throw, or log a warning, when the fallback is used in production.
+3. **Always check the React component tree first** when a context consumer behaves as if state never changes. Inspect the rendered DOM hierarchy before debugging state logic.
+4. **When the same bug survives multiple refactors**, the fix is likely not in the state logic — it's in the structure of the component tree.
+
+### 🐛 **BUG REPORT: Dual Mode Workflow Issues**
+
+**Date:** 2026-06-05  
+**Severity:** Critical (P0 — Core workflow broken)  
+**Status:** ✅ **FIXED**  
+**Affected Files:**
+- `app/dashboard/page.tsx`
+- `hooks/useFileUpload.ts`
+- `lib/storage.ts`
+- `components/MyUploads.tsx`
+
+#### Symptoms
+1. Users logged in with a Tatum API Key (gasless mode) but without a connected wallet were locked out of the dashboard by an "Access Required" wallet-connect check.
+2. The upload hook (`useFileUpload.ts`) and storage utilities (`storage.ts`) determined the upload mode using a hardcoded `config.network === 'mainnet'` check. Consequently, Tatum storage was ignored on testnet (preventing developer testing) and direct Walrus client uploads were ignored on mainnet.
+3. If a wallet was disconnected in gasless mode, file uploads crashed when saving metadata, because the history tracking was hardcoded to use `account.address`.
+4. Deleting files from the history drawer failed for Tatum-uploaded files because the drawer required wallet transaction approval for all deletions and did not support Tatum's API deletion.
+
+#### The Fixes
+1. **Dashboard Access (`app/dashboard/page.tsx`)**: Replaced the check `if (!account)` with `if (!isAuthorized)` where authorization is granted if a wallet is connected OR if the user is in gasless mode with an API key configured. Added a "Login / API Key" button to prompt the unified login modal directly from the block page.
+2. **Context-Aware Upload Mode (`hooks/useFileUpload.ts` & `lib/storage.ts`)**: Integrated the `useAuth()` hook in `useFileUpload.ts` and set `isTatumMode = authMode === 'gasless'`. Made `uploadToStorage()` in `lib/storage.ts` always call Tatum's upload helper rather than throwing based on network.
+3. **Fallback History Key (`hooks/useFileUpload.ts` & `components/MyUploads.tsx`)**: History is now saved and loaded using `account?.address || 'gasless'` as a key so gasless mode works flawlessly without wallet connectivity.
+4. **Gasless Deletions (`components/MyUploads.tsx`)**: Updated `handleDelete` to check if the file was uploaded via Tatum (by storage provider or empty object ID). For Tatum files, it calls `instantDeleteUpload` using the saved Tatum API key—bypassing wallet signature prompt completely.
 
 ---
 

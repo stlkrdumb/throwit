@@ -31,6 +31,7 @@
   --color-border: #000000;
   --color-input: #FFFFFF;
   --color-ring: #AA00FF;
+  --color-yellow-400: #FACC15;
 }
 
 .dark {
@@ -61,6 +62,7 @@
   --color-border: #000000;
   --color-input: #161616;
   --color-ring: #C6FF00;
+  --color-yellow-400: #FACC15;
 }
 
 @theme {
@@ -91,6 +93,7 @@
   --color-border: var(--color-border);
   --color-input: var(--color-input);
   --color-ring: var(--color-ring);
+  --color-yellow-400: var(--color-yellow-400);
   
   --font-display: var(--font-bebas-neue), sans-serif;
   --font-body: var(--font-space-grotesk), sans-serif;

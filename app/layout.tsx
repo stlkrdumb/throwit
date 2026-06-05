@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Bebas_Neue, JetBrains_Mono } from "next/font/google";
 import { Providers } from "./providers";
-import { NetworkBanner } from "@/components/NetworkBanner";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -31,7 +30,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning className={`${spaceGrotesk.variable} ${bebasNeue.variable} ${jetbrainsMono.variable} antialiased`}>
       <body className="flex min-h-screen flex-col bg-background text-foreground font-body">
         <Providers>{children}</Providers>
-        <NetworkBanner />
       </body>
     </html>
   );

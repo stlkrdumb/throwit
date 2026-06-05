@@ -6,14 +6,18 @@ import { EXPIRY_OPTIONS, ExpiryOption, formatFileSize } from '@/hooks/useFileUpl
 import { useUploadContext } from '../context';
 import { WalletButton } from '@/components/WalletButton';
 import { useCurrentAccount } from '@mysten/dapp-kit-react';
+import { useAuth } from '@/context/AuthContext';
 
 export function ReadyState() {
   const { state, actions } = useUploadContext();
   const account = useCurrentAccount();
+  const { authMode, apiKeyConfigured } = useAuth();
   const { fileInfos, totalSize, selectedHours } = state;
   const { setSelectedHours, executeUpload, removeFile } = actions;
 
   if (!fileInfos || fileInfos.length === 0) return null;
+
+  const isAuthorized = !!account || (authMode === 'gasless' && apiKeyConfigured);
 
   return (
     <>
@@ -24,7 +28,7 @@ export function ReadyState() {
             key={i}
             className="flex items-center gap-3 p-3 rounded-[4px] border-2 border-black bg-muted group hover:bg-background shadow-[2px_2px_0_var(--color-secondary)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_var(--color-secondary)]"
           >
-            {account ? (
+            {isAuthorized ? (
               <button
                 type="button"
                 onClick={() => removeFile(i)}
@@ -71,7 +75,7 @@ export function ReadyState() {
           </TabsList>
         </Tabs>
 
-        {account ? (
+        {isAuthorized ? (
           <button
             onClick={executeUpload}
             className="w-full text-sm font-black uppercase tracking-wider py-3 rounded-[4px] border-3 border-black bg-primary text-primary-foreground shadow-[4px_4px_0_var(--color-primary)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_var(--color-primary)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_var(--color-primary)] transition-all duration-100 cursor-pointer"

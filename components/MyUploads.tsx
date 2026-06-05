@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useCurrentAccount, useDAppKit, useCurrentClient } from '@mysten/dapp-kit-react';
+import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Trash2, Copy, Check, ExternalLink, HardDrive, ShieldAlert, Loader2, X, Info, QrCode, FileImage, FileVideo, FileAudio2, FileArchive, FileCode, FileType, FileLock, ChevronDown, ChevronUp } from 'lucide-react';
@@ -20,6 +21,8 @@ interface UploadItem {
   uploadedAt: number;
   keyB64: string;
   ivB64: string;
+  jobId?: string;
+  storageProvider?: 'walrus' | 'tatum';
 }
 
 const EXTENSION_MAP: Record<string, { icon: React.ReactNode; color: string; stripClass: string }> = {
@@ -77,6 +80,7 @@ export function MyUploads() {
   const account = useCurrentAccount();
   const dAppKit = useDAppKit();
   const suiClient = useCurrentClient();
+  const { authMode, apiKeyConfigured } = useAuth();
   
   const [isOpen, setIsOpen] = useState(false);
   const [uploads, setUploads] = useState<UploadItem[]>([]);
@@ -88,11 +92,8 @@ export function MyUploads() {
 
   // Load history from localStorage
   const loadUploads = () => {
-    if (!account) {
-      setUploads([]);
-      return;
-    }
-    const key = `throwit_uploads_${account.address}`;
+    const historyAddress = account?.address || 'gasless';
+    const key = `throwit_uploads_${historyAddress}`;
     const stored = localStorage.getItem(key);
     if (stored) {
       try {
@@ -114,7 +115,7 @@ export function MyUploads() {
     };
     window.addEventListener('throwit_upload_success', handleUploadSuccess);
     return () => window.removeEventListener('throwit_upload_success', handleUploadSuccess);
-  }, [account]);
+  }, [account, authMode]);
 
   // Lock scroll when drawer is open
   useEffect(() => {
@@ -137,44 +138,82 @@ export function MyUploads() {
   };
 
   const handleDelete = async (item: UploadItem, index: number) => {
-    if (!account) return;
+    const isTatum = item.storageProvider === 'tatum' || !item.blobObjectId;
+    if (!isTatum && !account) {
+      toast.error('Wallet connection required to delete on-chain file.');
+      return;
+    }
     setDeletingIndex(index);
-    toast.loading('Preparing self-destruct transaction…', { id: 'delete-toast' });
+    toast.loading('Preparing deletion…', { id: 'delete-toast' });
 
     try {
-      const client = getWalrusWriteClient();
-      
-      const tx = client.deleteBlobTransaction({
-        blobObjectId: item.blobObjectId,
-        owner: account.address,
-      });
+      if (isTatum) {
+        const apiKey = localStorage.getItem('throwit_tatum_api_key') || '';
+        let jobId = item.jobId;
 
-      toast.info('Please approve the self-destruct transaction in your wallet…', { id: 'delete-toast' });
+        if (!jobId) {
+          // Fallback to checking localStorage cache
+          const cacheKey = `throwit_tatum_download_${item.blobId}`;
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            try {
+              jobId = JSON.parse(cached).jobId;
+            } catch {}
+          }
+        }
 
-      const result = await dAppKit.signAndExecuteTransaction({
-        transaction: tx,
-      });
+        if (!jobId) {
+          throw new Error('Deletion failed: Tatum jobId not found.');
+        }
 
-      if (result.FailedTransaction) {
-        throw new Error(
-          result.FailedTransaction.status.error?.message ??
-            'Delete transaction failed in wallet'
-        );
+        if (!apiKey) {
+          throw new Error('Deletion failed: Tatum API key not configured.');
+        }
+
+        toast.info('Deleting file from Tatum Storage…', { id: 'delete-toast' });
+        const { instantDeleteUpload } = await import('@/lib/storage');
+        await instantDeleteUpload(jobId, apiKey);
+      } else {
+        const client = getWalrusWriteClient();
+        
+        const tx = client.deleteBlobTransaction({
+          blobObjectId: item.blobObjectId,
+          owner: account!.address,
+        });
+
+        toast.info('Please approve the self-destruct transaction in your wallet…', { id: 'delete-toast' });
+
+        const result = await dAppKit.signAndExecuteTransaction({
+          transaction: tx,
+        });
+
+        if (result.FailedTransaction) {
+          throw new Error(
+            result.FailedTransaction.status.error?.message ??
+              'Delete transaction failed in wallet'
+          );
+        }
+
+        toast.loading('Waiting for blockchain deletion confirmation…', { id: 'delete-toast' });
+        await suiClient.waitForTransaction({ digest: result.Transaction.digest });
       }
 
-      toast.loading('Waiting for blockchain deletion confirmation…', { id: 'delete-toast' });
-      await suiClient.waitForTransaction({ digest: result.Transaction.digest });
-
-      const key = `throwit_uploads_${account.address}`;
+      const historyAddress = account?.address || 'gasless';
+      const key = `throwit_uploads_${historyAddress}`;
       const updated = uploads.filter((_, i) => i !== index);
       localStorage.setItem(key, JSON.stringify(updated));
       setUploads(updated);
 
-      toast.success('File deleted and WAL storage deposit refunded!', { id: 'delete-toast' });
+      toast.success(
+        isTatum 
+          ? 'File deleted from Tatum Storage!' 
+          : 'File deleted and WAL storage deposit refunded!', 
+        { id: 'delete-toast' }
+      );
     } catch (err) {
       console.error('Delete error:', err);
       toast.error(
-        err instanceof Error ? err.message : 'Failed to delete file on-chain.',
+        err instanceof Error ? err.message : 'Failed to delete file.',
         { id: 'delete-toast' }
       );
     } finally {
@@ -192,7 +231,8 @@ export function MyUploads() {
   // Calculate total size of active uploads
   const totalSizeBytes = uploads.reduce((acc, curr) => acc + curr.size, 0);
 
-  if (!account) return null;
+  const isAuthorized = !!account || (authMode === 'gasless' && apiKeyConfigured);
+  if (!isAuthorized) return null;
 
   return (
     <>
@@ -309,7 +349,7 @@ export function MyUploads() {
                     <div className="absolute right-full mr-3 top-0 w-64 p-3 rounded-[4px] border-3 border-black bg-card shadow-[6px_6px_0_var(--color-accent)] z-10 text-foreground">
                       <p className="text-xs font-black text-foreground uppercase tracking-wider mb-2">Contained Files</p>
                       <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                        {(getEntryList(item, account.address) || []).map((e, ei) => (
+                        {(getEntryList(item, account?.address || 'gasless') || []).map((e, ei) => (
                           <div key={ei} className="flex items-center gap-2 py-1 px-2 rounded-[4px] border border-transparent hover:bg-secondary hover:text-black transition-colors">
                             <span className="text-[11px] font-mono text-muted-foreground font-semibold w-3">{ei + 1}</span>
                             <span className="text-xs font-bold text-foreground truncate flex-1">{e.name}</span>

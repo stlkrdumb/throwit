@@ -82,6 +82,18 @@ export function RecoveryPanel({ errorType, errorMessage, onRetry, onReset }: Rec
         { label: 'Start Over', icon: ArrowLeftRight, onClick: onReset, variant: 'secondary' },
       ],
     },
+    'walrus-nodes-error': {
+      title: 'Walrus Node Connection Error',
+      description: (
+        <>
+          Many Walrus node operators on mainnet have expired or misconfigured SSL certificates on port 9185, which browser security blocks. 
+          Please switch to <strong>Tatum Gasless Mode</strong> in the header or footer to upload files using Tatum's server-side storage publisher.
+        </>
+      ),
+      actions: [
+        { label: 'Start Over', icon: ArrowLeftRight, onClick: onReset, variant: 'secondary' },
+      ],
+    },
     unknown: null, // handled generically
   };
 

@@ -2,23 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { config } from '@/lib/config';
+import { useAuth } from '@/context/AuthContext';
 
 export function NetworkBanner() {
-  const [provider, setProvider] = useState<'tatum' | 'official'>('tatum');
+  const { authMode, setAuthMode, walletStatus, account } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [showKeyInput, setShowKeyInput] = useState(false);
   const [tempKey, setTempKey] = useState('');
-  const [storedKey, setStoredKey] = useState('');
-  const [envKey, setEnvKey] = useState('');
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem('throwit_rpc_provider') as 'tatum' | 'official';
-    if (stored) {
-      setProvider(stored);
-    }
-    setStoredKey(localStorage.getItem('throwit_tatum_api_key') || '');
-    setEnvKey(process.env.NEXT_PUBLIC_TATUM_API_KEY || '');
   }, []);
 
   useEffect(() => {
@@ -26,13 +19,6 @@ export function NetworkBanner() {
       setTempKey(localStorage.getItem('throwit_tatum_api_key') || '');
     }
   }, [showKeyInput]);
-
-  const handleSwitch = (newProvider: 'tatum' | 'official') => {
-    if (newProvider === provider) return;
-    localStorage.setItem('throwit_rpc_provider', newProvider);
-    setProvider(newProvider);
-    window.location.reload();
-  };
 
   const handleSaveKey = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,54 +29,99 @@ export function NetworkBanner() {
       localStorage.removeItem('throwit_tatum_api_key');
     }
     setShowKeyInput(false);
-    window.location.reload();
   };
 
   const handleClearKey = () => {
     localStorage.removeItem('throwit_tatum_api_key');
     setTempKey('');
     setShowKeyInput(false);
-    window.location.reload();
   };
 
   if (!mounted) {
     return (
-      <footer className="fixed bottom-0 left-0 right-0 z-40 h-8 bg-card border-t-3 border-black flex items-center px-6 text-xs font-mono select-none" />
+      <footer className="fixed bottom-0 left-0 right-0 z-40 h-10 bg-card border-t-3 border-black flex items-center justify-between px-6 text-xs font-mono select-none">
+        {/* Left: Auth Mode Status */}
+        <div className="flex items-center gap-2 text-foreground font-semibold">
+          <span className={`h-2 w-2 rounded-full border border-black shrink-0 ${
+            authMode === 'onchain' ? 'bg-green-600' : 'bg-yellow-400 animate-pulse'
+          }`} />
+          <span>
+            AUTH MODE: <span className="font-bold text-primary">{authMode === 'onchain' ? 'TATUM ONCHAIN' : 'TATUM GASLESS'}</span>
+          </span>
+        </div>
+
+        {/* Right: Mode Switcher + API Key */}
+        <div className="flex items-center gap-2">
+          {/* Mode switcher */}
+          <div className="flex items-center gap-1.5 bg-muted border border-black p-0.5 rounded-[2px]">
+            <button
+              onClick={() => setAuthMode('onchain')}
+              className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-[2px] transition-all cursor-pointer ${
+                authMode === 'onchain'
+                  ? 'bg-primary text-primary-foreground border border-black shadow-[1px_1px_0_#000]'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              ONCHAIN
+            </button>
+            <button
+              onClick={() => setAuthMode('gasless')}
+              className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-[2px] transition-all cursor-pointer ${
+                authMode === 'gasless'
+                  ? 'bg-primary text-primary-foreground border border-black shadow-[1px_1px_0_#000]'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              GASLESS
+            </button>
+          </div>
+
+          {/* API Key change button (only in gasless mode) */}
+          {authMode === 'gasless' && (
+            <button
+              onClick={() => setShowKeyInput(true)}
+              className={`px-2 py-0.5 border border-black rounded-[2px] text-[9px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer shadow-[1px_1px_0_#000] ${
+                localStorage.getItem('throwit_tatum_api_key') || process.env.NEXT_PUBLIC_TATUM_API_KEY_MAINNET
+                  ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  : 'bg-yellow-400 text-black hover:bg-yellow-300 animate-pulse'
+              }`}
+            >
+              🔑 CHANGE API KEY
+            </button>
+          )}
+        </div>
+      </footer>
     );
   }
 
-  const keyExists = !!(storedKey || envKey);
-
+  // Show key input when toggled
   if (showKeyInput) {
     return (
-      <footer className="fixed bottom-0 left-0 right-0 z-40 h-8 bg-card border-t-3 border-black flex items-center px-6 text-xs font-mono select-none">
-        <form
-          onSubmit={handleSaveKey}
-          className="flex items-center justify-between w-full gap-4"
-        >
+      <footer className="fixed bottom-0 left-0 right-0 z-40 h-10 bg-card border-t-3 border-black flex items-center justify-between px-6 text-xs font-mono select-none">
+        <form onSubmit={handleSaveKey} className="flex items-center gap-2 w-full">
           <div className="flex items-center gap-2 text-foreground font-semibold">
-            <span className="text-[10px] text-muted-foreground uppercase">TATUM API KEY:</span>
+            <span className="text-[10px] text-muted-foreground uppercase">CHANGE API KEY:</span>
             <input
               type="password"
               value={tempKey}
               onChange={(e) => setTempKey(e.target.value)}
-              placeholder={envKey ? "Loaded from .env.local" : "Paste Tatum API Key..."}
-              className="bg-background border border-black px-2 py-0.5 text-[10px] font-mono outline-none rounded-[2px] w-64 text-foreground focus:ring-1 focus:ring-primary focus:border-primary shadow-[1px_1px_0_rgba(0,0,0,0.15)]"
+              placeholder="Paste new Tatum API Key..."
+              className="bg-background border border-black px-2 py-0.5 text-[10px] font-mono outline-none rounded-[2px] w-64 focus:ring-1 focus:ring-primary"
             />
-            {storedKey && (
+          </div>
+          <div className="flex items-center gap-2 ml-2">
+            {localStorage.getItem('throwit_tatum_api_key') && (
               <button
                 type="button"
                 onClick={handleClearKey}
-                className="px-2 py-0.5 text-[9px] font-bold text-red-500 hover:text-red-700 bg-transparent border border-red-500/30 hover:border-red-500 rounded-[2px] transition-all cursor-pointer"
+                className="px-2 py-0.5 text-[9px] font-bold text-red-500 hover:text-red-700 bg-transparent border border-red-500/30 rounded-[2px] cursor-pointer uppercase"
               >
                 CLEAR
               </button>
             )}
-          </div>
-          <div className="flex items-center gap-2">
             <button
               type="submit"
-              className="bg-primary text-primary-foreground border border-black px-3 py-0.5 text-[9px] font-black uppercase rounded-[2px] cursor-pointer shadow-[1px_1px_0_#000] active:translate-y-[1px] active:translate-x-[1px]"
+              className="bg-primary text-primary-foreground border border-black px-3 py-0.5 text-[9px] font-black uppercase rounded-[2px] cursor-pointer shadow-[1px_1px_0_#000]"
             >
               SAVE
             </button>
@@ -107,56 +138,56 @@ export function NetworkBanner() {
     );
   }
 
+  // Normal state with mode selector and API key button
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-40 h-8 bg-card border-t-3 border-black flex items-center justify-between px-6 text-xs font-mono select-none">
-      {/* Left: Active Network Status */}
+    <footer className="fixed bottom-0 left-0 right-0 z-40 h-10 bg-card border-t-3 border-black flex items-center justify-between px-6 text-xs font-mono select-none">
+      {/* Left: Auth Mode Status */}
       <div className="flex items-center gap-2 text-foreground font-semibold">
-        <span className="h-2 w-2 rounded-full bg-green-600 animate-pulse border border-black shrink-0" />
+        <span className={`h-2 w-2 rounded-full border border-black shrink-0 ${
+          authMode === 'onchain' ? 'bg-green-600' : 'bg-yellow-400 animate-pulse'
+        }`} />
         <span>
-          NETWORK STATUS: <span className="font-bold text-primary">SUI {config.network.toUpperCase()}</span>
+          AUTH MODE: <span className="font-bold text-primary">{authMode === 'onchain' ? 'TATUM ONCHAIN' : 'TATUM GASLESS'}</span>
         </span>
       </div>
 
-      {/* Right: RPC Provider Switcher */}
-      <div className="flex items-center gap-2 text-foreground font-semibold">
-        <span className="text-[10px] text-muted-foreground uppercase">SUI RPC:</span>
+      {/* Right: Mode Switcher + API Key */}
+      <div className="flex items-center gap-2">
+        {/* Mode switcher */}
         <div className="flex items-center gap-1.5 bg-muted border border-black p-0.5 rounded-[2px]">
           <button
-            onClick={() => handleSwitch('tatum')}
+            onClick={() => setAuthMode('onchain')}
             className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-[2px] transition-all cursor-pointer ${
-              provider === 'tatum'
-                ? 'bg-primary text-primary-foreground border border-black font-black shadow-[1px_1px_0_#000] translate-x-[-0.5px] translate-y-[-0.5px]'
-                : 'text-muted-foreground hover:text-foreground font-semibold border border-transparent'
+              authMode === 'onchain'
+                ? 'bg-primary text-primary-foreground border border-black shadow-[1px_1px_0_#000]'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
-            title="Use high-performance Tatum RPC infrastructure (Required for Tatum tools prize)"
           >
-            Tatum Gateway
+            ONCHAIN
           </button>
           <button
-            onClick={() => handleSwitch('official')}
+            onClick={() => setAuthMode('gasless')}
             className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-[2px] transition-all cursor-pointer ${
-              provider === 'official'
-                ? 'bg-primary text-primary-foreground border border-black font-black shadow-[1px_1px_0_#000] translate-x-[-0.5px] translate-y-[-0.5px]'
-                : 'text-muted-foreground hover:text-foreground font-semibold border border-transparent'
+              authMode === 'gasless'
+                ? 'bg-primary text-primary-foreground border border-black shadow-[1px_1px_0_#000]'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
-            title="Use standard official SUI fullnode RPC"
           >
-            Official Node
+            GASLESS
           </button>
         </div>
 
-        {/* API Key configuration button for Tatum */}
-        {provider === 'tatum' && (
+        {/* API Key change button (only in gasless mode) */}
+        {authMode === 'gasless' && (
           <button
             onClick={() => setShowKeyInput(true)}
-            className={`px-2 py-0.5 border border-black rounded-[2px] transition-all cursor-pointer text-[9px] font-black uppercase flex items-center gap-1 ${
-              keyExists
-                ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-[1px_1px_0_#000]'
-                : 'bg-yellow-400 text-black hover:bg-yellow-300 shadow-[1px_1px_0_#000] animate-pulse border border-black font-black'
+            className={`px-2 py-0.5 border border-black rounded-[2px] text-[9px] font-black uppercase flex items-center gap-1 transition-all cursor-pointer shadow-[1px_1px_0_#000] ${
+              localStorage.getItem('throwit_tatum_api_key') || process.env.NEXT_PUBLIC_TATUM_API_KEY_MAINNET
+                ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                : 'bg-yellow-400 text-black hover:bg-yellow-300 animate-pulse'
             }`}
-            title={keyExists ? "Tatum API Key configured. Click to change." : "Tatum API Key is missing! Click to configure."}
           >
-            🔑 {keyExists ? 'KEY' : 'NO KEY!'}
+            🔑 CHANGE API KEY
           </button>
         )}
       </div>

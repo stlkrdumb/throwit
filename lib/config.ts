@@ -11,16 +11,14 @@ export function getActiveRpcUrl(net: 'testnet' | 'mainnet'): string {
       : (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-testnet-grpc.gateway.tatum.io');
   }
 
-  const provider = localStorage.getItem('throwit_rpc_provider') || 'tatum';
+  const provider = localStorage.getItem('throwit_rpc_provider') || 'official';
   if (provider === 'official') {
     return net === 'mainnet'
       ? 'https://fullnode.mainnet.sui.io:443'
       : 'https://fullnode.testnet.sui.io:443';
   } else {
-    // Default to Tatum SUI gRPC Gateway
-    return net === 'mainnet'
-      ? (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-mainnet-grpc.gateway.tatum.io')
-      : (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-testnet-grpc.gateway.tatum.io');
+    // Default to Tatum SUI gRPC Gateway (via local proxy to bypass CORS)
+    return `${window.location.origin}/api/tatum-grpc-proxy`;
   }
 }
 
@@ -45,7 +43,7 @@ export function getRpcHeaders(): Record<string, string> {
     return envKey ? { 'x-api-key': envKey } : {};
   }
 
-  const provider = localStorage.getItem('throwit_rpc_provider') || 'tatum';
+  const provider = localStorage.getItem('throwit_rpc_provider') || 'official';
   if (provider === 'official') {
     return {};
   }

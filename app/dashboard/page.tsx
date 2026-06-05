@@ -6,9 +6,11 @@ import { UploadWrapper } from '@/components/UploadWrapper';
 import { MyUploadsWrapper } from '@/components/MyUploadsWrapper';
 import { WalletButton } from '@/components/WalletButton';
 import { Loader2, Lock } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Dashboard() {
   const account = useCurrentAccount();
+  const { authMode, apiKeyConfigured, setShowLoginDialog } = useAuth();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -26,8 +28,10 @@ export default function Dashboard() {
     );
   }
 
+  const isAuthorized = !!account || (authMode === 'gasless' && apiKeyConfigured);
+
   // Not connected state: show bold request card
-  if (!account) {
+  if (!isAuthorized) {
     return (
       <div className="relative flex-1 w-full min-h-[calc(100vh-69px)] overflow-hidden flex flex-col items-center justify-center p-6">
         {/* Decorative geometric shapes (solid fills, no blurs) */}
@@ -42,12 +46,18 @@ export default function Dashboard() {
           
           <div className="space-y-2">
             <h1 className="text-2xl font-black uppercase tracking-wider text-foreground">Access Required</h1>
-            <p className="text-sm text-muted-foreground font-medium leading-relaxed max-w-sm mx-auto">
-              Connect your Sui wallet to access the encrypted sharing workspace. Encrypt files, pay for Walrus storage, and manage rebates.
+            <p className="text-sm text-muted-foreground font-medium leading-relaxed max-w-sm mx-auto text-center">
+              Connect your Sui wallet or set up a Tatum API key to access the encrypted sharing workspace.
             </p>
           </div>
 
-          <div className="mt-2">
+          <div className="mt-2 flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => setShowLoginDialog(true)}
+              className="h-9 px-4 rounded-[4px] border-2 border-black bg-primary text-primary-foreground font-bold uppercase text-xs tracking-wider shadow-[2px_2px_0_var(--color-primary)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_var(--color-primary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-primary)] transition-all cursor-pointer"
+            >
+              Login / API Key
+            </button>
             <WalletButton />
           </div>
         </div>

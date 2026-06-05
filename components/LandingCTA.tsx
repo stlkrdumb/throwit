@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Wallet, ShieldAlert, ArrowRight, Loader2, ExternalLink } from 'lucide-react';
+import { Wallet, ShieldAlert, ArrowRight, Loader2, ExternalLink, Key } from 'lucide-react';
 import { toast } from 'sonner';
 import { config } from '@/lib/config';
 
@@ -23,9 +23,14 @@ export function LandingCTA() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [apiKeyConfigured, setApiKeyConfigured] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    // Check if API key is configured
+    if (typeof window !== 'undefined') {
+      setApiKeyConfigured(!!localStorage.getItem('throwit_tatum_api_key'));
+    }
   }, []);
 
   // Redirect to dashboard automatically if wallet is connected while dialog is open or after connection
@@ -65,6 +70,20 @@ export function LandingCTA() {
       >
         Launch Dashboard
         <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 text-primary-foreground" />
+      </button>
+    );
+  }
+
+  // If API key is configured, allow direct access to dashboard
+  if (apiKeyConfigured) {
+    return (
+      <button
+        onClick={() => router.push('/dashboard')}
+        className="group inline-flex items-center gap-2 px-6 h-12 rounded-[4px] bg-yellow-400 text-black border-3 border-black text-sm font-bold uppercase tracking-wide transition-all duration-100 cursor-pointer shadow-[4px_4px_0_var(--color-secondary)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_var(--color-secondary)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_var(--color-secondary)]"
+      >
+        <Key className="h-4 w-4" />
+        Launch Dashboard
+        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 text-black" />
       </button>
     );
   }
