@@ -166,7 +166,12 @@ export function NetworkBanner() {
             ONCHAIN
           </button>
           <button
-            onClick={() => setAuthMode('gasless')}
+            onClick={() => {
+              setAuthMode('gasless');
+              if (!localStorage.getItem('throwit_tatum_api_key')) {
+                setShowKeyInput(true);
+              }
+            }}
             className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-[2px] transition-all cursor-pointer ${
               authMode === 'gasless'
                 ? 'bg-primary text-primary-foreground border border-black shadow-[1px_1px_0_#000]'

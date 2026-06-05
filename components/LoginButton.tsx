@@ -88,8 +88,12 @@ export function LoginButton() {
   };
 
   const handleSwitchMode = () => {
-    setAuthMode(authMode === 'onchain' ? 'gasless' : 'onchain');
+    const targetMode = authMode === 'onchain' ? 'gasless' : 'onchain';
+    setAuthMode(targetMode);
     setMenuOpen(false);
+    if (targetMode === 'gasless' && !localStorage.getItem('throwit_tatum_api_key')) {
+      setShowLoginDialog(true);
+    }
   };
 
   const maskKey = (key: string) => {
@@ -98,19 +102,18 @@ export function LoginButton() {
     return `${key.slice(0, 4)}****${key.slice(-4)}`;
   };
 
-  // Loading state
+  // Render main button/dropdown depending on state
+  let trigger = null;
+
   if (walletStatus === 'connecting') {
-    return (
+    trigger = (
       <button className="inline-flex items-center gap-2 h-9 px-4 rounded-[4px] border-2 border-black bg-primary text-primary-foreground font-bold uppercase text-xs cursor-not-allowed shadow-[3px_3px_0_var(--color-primary)]">
         <Loader2 className="h-4 w-4 animate-spin" />
         Connecting...
       </button>
     );
-  }
-
-  // ============== CONNECTED: WALLET ==============
-  if (account && walletStatus === 'connected') {
-    return (
+  } else if (account && walletStatus === 'connected') {
+    trigger = (
       <div className="relative" ref={menuRef}>
         <button
           onClick={() => setMenuOpen((o) => !o)}
@@ -165,11 +168,8 @@ export function LoginButton() {
         )}
       </div>
     );
-  }
-
-  // ============== CONNECTED: API KEY (GASLESS) ==============
-  if (apiKeyConfigured && authMode === 'gasless') {
-    return (
+  } else if (apiKeyConfigured && authMode === 'gasless') {
+    trigger = (
       <div className="relative" ref={menuRef}>
         <button
           onClick={() => setMenuOpen((o) => !o)}
@@ -224,11 +224,8 @@ export function LoginButton() {
         )}
       </div>
     );
-  }
-
-  // ============== DISCONNECTED ==============
-  return (
-    <>
+  } else {
+    trigger = (
       <button
         onClick={() => setShowLoginDialog(true)}
         className="inline-flex items-center gap-2 h-9 px-4 rounded-[4px] border-2 border-black bg-primary text-primary-foreground font-bold uppercase text-xs cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0_var(--color-primary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-primary)] transition-all shadow-[2px_2px_0_var(--color-primary)]"
@@ -236,6 +233,12 @@ export function LoginButton() {
         <Wallet className="h-4 w-4" />
         Login
       </button>
+    );
+  }
+
+  return (
+    <>
+      {trigger}
 
       <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
         <DialogContent className="border-3 border-black bg-card text-foreground max-w-md p-6 shadow-[6px_6px_0_var(--color-secondary)] rounded-[4px]">
@@ -257,6 +260,7 @@ export function LoginButton() {
               </div>
               <div className="flex gap-1.5">
                 <button
+                  type="button"
                   onClick={() => setAuthMode('onchain')}
                   className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-[2px] transition-all cursor-pointer ${
                     authMode === 'onchain'
@@ -267,6 +271,7 @@ export function LoginButton() {
                   ONCHAIN (Wallet)
                 </button>
                 <button
+                  type="button"
                   onClick={() => setAuthMode('gasless')}
                   className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-[2px] transition-all cursor-pointer ${
                     authMode === 'gasless'
@@ -314,25 +319,18 @@ export function LoginButton() {
               </div>
             ) : null}
 
-            {/* API Key login */}
-            {authMode === 'gasless' && !showKeyInput ? (
-              <button
-                onClick={() => setShowKeyInput(true)}
-                className="w-full flex items-center justify-between gap-3 h-12 px-4 rounded-[4px] border-2 border-black bg-muted hover:bg-secondary text-foreground font-bold text-sm cursor-pointer hover:translate-x-[-1px] hover:translate-y[-1px] hover:shadow-[3px_3px_0_var(--color-secondary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-secondary)] transition-all"
-              >
-                <div className="flex items-center gap-2">
-                  <Key className="h-5 w-5" />
-                  <span>Enter API Key</span>
-                </div>
-                <span className="text-[10px] font-mono text-red-500 uppercase tracking-wide px-2 py-0.5 rounded-[4px] bg-red-100 border border-red-500">
-                  REQUIRED
-                </span>
-              </button>
-            ) : null}
-
-            {/* API Key input form */}
-            {authMode === 'gasless' && showKeyInput && (
+            {/* API Key login / form */}
+            {authMode === 'gasless' && (
               <div className="space-y-3 p-3 rounded-[4px] border-2 border-black bg-background">
+                <div className="flex items-center gap-2 mb-1">
+                  <Key className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-mono font-bold uppercase text-foreground">
+                    Enter Tatum API Key
+                  </span>
+                  <span className="text-[9px] font-mono text-red-500 uppercase tracking-wide px-1.5 py-0.5 rounded-[4px] bg-red-100 border border-red-500 ml-auto">
+                    REQUIRED
+                  </span>
+                </div>
                 <input
                   type="password"
                   value={apiKey}
@@ -341,7 +339,7 @@ export function LoginButton() {
                     setKeyError('');
                   }}
                   placeholder="Paste Tatum API Key..."
-                  className="w-full h-10 px-3 rounded-[4px] border-2 border-black bg-muted text-xs font-mono outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                  className="w-full h-10 px-3 rounded-[4px] border-2 border-black bg-muted text-xs font-mono outline-none focus:ring-1 focus:ring-primary focus:border-primary text-foreground"
                 />
                 {keyError && (
                   <p className="text-xs text-red-500 font-bold uppercase">{keyError}</p>
@@ -354,7 +352,7 @@ export function LoginButton() {
                     Login
                   </button>
                   <button
-                    onClick={() => { setShowKeyInput(false); setApiKey(''); setKeyError(''); }}
+                    onClick={() => { setApiKey(''); setKeyError(''); setShowLoginDialog(false); }}
                     className="px-3 h-9 rounded-[4px] border-2 border-black bg-muted text-foreground font-bold uppercase text-xs cursor-pointer"
                   >
                     Cancel

@@ -2,7 +2,7 @@
 name: ThrowIt Neobrutalist Design System
 description: Modern neobrutalist visual framework with thick borders and hard shadows
 colors:
-  primary: "#AA00FF"
+  primary: "#FF5722"
   neutral-bg: "#F5F0E6"
   neutral-card: "#FFFFFF"
   accent: "#C6FF00"
@@ -57,7 +57,7 @@ It completely rejects gradients, soft lighting, glassmorphism, or rounded bubble
 No gradients. Saturated primaries on neutral backgrounds.
 
 ### Primary / Accent
-- **Electric Purple** (#AA00FF): Primary branding color in light mode / secondary in dark mode.
+- **Vibrant Orange** (#FF5722): Primary branding color in light mode / secondary in dark mode.
 - **Acid Lime** (#C6FF00): Primary branding color in dark mode / secondary in light mode.
 - **Success Green** (#4CAF50): Complete statuses, explorer links, and active counts.
 
@@ -100,7 +100,7 @@ Depth is created using geometric translation shifts and offset shadows, simulati
 
 ### Buttons
 - **Shape:** Sharp or minimal corner radius (4px)
-- **Primary:** Electric Purple (Light) / Acid Lime (Dark) background with black border and black text
+- **Primary:** Vibrant Orange (Light) / Acid Lime (Dark) background with black border and black text
 - **States:** Hover expands shadow, active presses flat
 
 ### Cards / Containers

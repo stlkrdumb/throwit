@@ -30,7 +30,7 @@ const EXTENSION_MAP: Record<string, { icon: React.ReactNode; color: string; stri
   video: { icon: <FileVideo className="h-4 w-4" />, color: 'var(--neo-cyan)', stripClass: 'file-strip--video' },
   audio: { icon: <FileAudio2 className="h-4 w-4" />, color: 'var(--neo-amber)', stripClass: 'file-strip--audio' },
   archive: { icon: <FileArchive className="h-4 w-4" />, color: 'var(--neo-lime)', stripClass: 'file-strip--archive' },
-  code: { icon: <FileCode className="h-4 w-4" />, color: 'var(--neo-purple)', stripClass: 'file-strip--code' },
+  code: { icon: <FileCode className="h-4 w-4" />, color: 'var(--neo-orange)', stripClass: 'file-strip--code' },
   default: { icon: <FileLock className="h-4 w-4" />, color: '#64748b', stripClass: '' },
 };
 
@@ -244,7 +244,7 @@ export function MyUploads() {
         <HardDrive className="h-4.5 w-4.5" />
         Active Shares
         {uploads.length > 0 && (
-          <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-primary border-2 border-black text-[10px] font-black text-white ml-0.5">
+          <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-primary border-2 border-black text-[10px] font-black text-primary-foreground ml-0.5">
             {uploads.length}
           </span>
         )}

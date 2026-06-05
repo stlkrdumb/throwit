@@ -101,6 +101,10 @@ async function handleProxy(request: NextRequest) {
     const body = bodyBuffer.byteLength > 0 ? Buffer.from(bodyBuffer) : undefined;
     console.log(`[Walrus Node Proxy] Request body length: ${bodyBuffer.byteLength} bytes`);
 
+    if (body) {
+      headers['content-length'] = bodyBuffer.byteLength.toString();
+    }
+
     // 3. Forward request using Node's standard module (specifically disabling TLS check)
     const proxyResponse = await requestWithNode(targetUrl, request.method, headers, body);
     console.log(`[Walrus Node Proxy] Target responded with status: ${proxyResponse.status}`);

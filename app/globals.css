@@ -13,14 +13,14 @@
   --color-popover: #FFFFFF;
   --color-popover-foreground: #000000;
   
-  --color-primary: #AA00FF; /* Electric Purple */
+  --color-primary: #FF5722; /* Vibrant Orange */
   --color-primary-foreground: #FFFFFF;
   
   --color-secondary: #C6FF00; /* Acid Lime */
   --color-secondary-foreground: #000000;
   
   --color-muted: #EDE8DC;
-  --color-muted-foreground: #666666;
+  --color-muted-foreground: #4A4A4A;
   
   --color-accent: #FFAB40;
   --color-accent-foreground: #000000;
@@ -30,8 +30,27 @@
   
   --color-border: #000000;
   --color-input: #FFFFFF;
-  --color-ring: #AA00FF;
+  --color-ring: #FF5722;
   --color-yellow-400: #FACC15;
+
+  /* Custom neo variables */
+  --neo-black: #000000;
+  --neo-white: #FFFFFF;
+  --neo-cream: #F5F0E6;
+  --neo-red: #FF5252;
+  --neo-yellow: #FFEB3B;
+  --neo-blue: #0052FF;
+  --neo-pink: #FF4081;
+  --neo-cyan: #00E5FF;
+  --neo-amber: #FFAB40;
+  --neo-lime: #C6FF00;
+  --neo-orange: #FF5722;
+  --neo-purple: #FF5722; /* Replaced with Vibrant Orange */
+
+  --neo-radius-xs: 0px;
+  --neo-radius-sm: 4px;
+  --neo-radius-md: 4px;
+  --neo-radius-lg: 4px;
 }
 
 .dark {
@@ -47,11 +66,11 @@
   --color-primary: #C6FF00; /* Acid Lime */
   --color-primary-foreground: #000000;
   
-  --color-secondary: #AA00FF; /* Electric Purple */
+  --color-secondary: #FF5722; /* Vibrant Orange */
   --color-secondary-foreground: #FFFFFF;
   
   --color-muted: #1A1A1A;
-  --color-muted-foreground: #888888;
+  --color-muted-foreground: #A0A0A0;
   
   --color-accent: #FFAB40;
   --color-accent-foreground: #000000;
@@ -63,6 +82,9 @@
   --color-input: #161616;
   --color-ring: #C6FF00;
   --color-yellow-400: #FACC15;
+
+  /* Custom neo variables */
+  --neo-purple: #FF5722; /* Replaced with Vibrant Orange */
 }
 
 @theme {
