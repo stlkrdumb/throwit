@@ -1,100 +1,263 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
+
+/* ===== Font Imports ===== */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
+/* ===== Neobrutalist Theme Tokens ===== */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --font-sans: var(--font-sans), ui-sans-serif, system-ui;
-  --font-mono: var(--font-mono), ui-monospace, 'SF Mono', monospace;
+  /* Page & Surface */
+  --color-background: var(--neo-page-bg);
+  --color-foreground: var(--neo-text-primary);
+  --color-card: var(--neo-surface);
+  --color-card-foreground: var(--neo-text-primary);
+  --color-popover: var(--neo-surface-hover);
+  --color-popover-foreground: var(--neo-text-primary);
+
+  /* Semantic Colors */
+  --color-primary: var(--neo-pink);
+  --color-primary-foreground: #000;
+  --color-secondary: var(--neo-cyan);
+  --color-secondary-foreground: #000;
+  --color-muted: var(--neo-text-muted);
+  --color-muted-foreground: var(--neo-text-muted);
+  --color-accent: var(--neo-amber);
+  --color-accent-foreground: #000;
+  --color-destructive: var(--neo-red);
+  --color-destructive-foreground: #FFF;
+
+  /* Structural */
+  --color-border: #000;
+  --color-input: #FFF;
+  --color-ring: var(--neo-cyan);
+
+  /* Typography */
+  --font-sans: 'Inter', ui-sans-serif, system-ui;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+
+  /* Border Radius — keep small for neobrutalism */
   --radius-sm: calc(var(--radius) * 0.5);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.25);
 }
 
+/* ===== Neobrutalist Color Palette ===== */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.627 0.183 149.572);
-  --primary-foreground: oklch(0.145 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.969 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.627 0.183 149.572);
-  --radius: 0.5rem;
+  /* Base colors (dark theme) */
+  --neo-page-bg: oklch(0.04 0 0);       /* #0A0A0A — page background */
+  --neo-surface: oklch(0.07 0 0);        /* #111111 — card surfaces */
+  --neo-surface-hover: oklch(0.09 0 0);  /* #161616 — hover states */
+  --neo-text-primary: oklch(0.94 0 0);   /* #F0F0F0 — primary text */
+  --neo-text-muted: oklch(0.53 0 0);     /* #888888 — secondary text */
+
+  /* Accent neon colors */
+  --neo-pink: oklch(0.67 0.25 350);      /* #FF4081 — primary CTAs, active */
+  --neo-cyan: oklch(0.92 0.12 190);      /* #69FFFF — links, secondary actions */
+  --neo-lime: oklch(0.87 0.21 130);      /* #B2FF59 — success, completion */
+  --neo-amber: oklch(0.78 0.18 70);      /* #FFAB40 — warnings, ZIP packs */
+  --neo-purple: oklch(0.72 0.23 310);    /* #EA80FC — wallet, premium */
+
+  /* Status colors */
+  --neo-red: oklch(0.63 0.24 27);        /* #FF5252 — errors, delete */
+
+  /* Neobrutalist shadow tokens (hard, zero blur) */
+  --neo-shadow-sm: 2px 2px 0 var(--neo-black);
+  --neo-shadow-md: 4px 4px 0 var(--neo-black);   /* default card shadow */
+  --neo-shadow-lg: 6px 6px 0 var(--neo-black);
+  --neo-shadow-xl: 8px 8px 0 var(--neo-black);
+
+  /* Neobrutalist border tokens */
+  --neo-border-thick: 3px solid var(--neo-black);
+  --neo-border-bold: 2px solid var(--neo-black);
+  --neo-radius-sm: 2px;
+  --neo-radius-md: 4px;
+
+  /* Brand color (black) */
+  --neo-black: #000000;
 }
 
+/* ===== Dark Mode Override (keep consistent with above) ===== */
 .dark {
-  --background: oklch(0.12 0 0);
-  --foreground: oklch(0.94 0 0);
-  --card: oklch(0.16 0 0);
-  --card-foreground: oklch(0.94 0 0);
-  --popover: oklch(0.16 0 0);
-  --popover-foreground: oklch(0.94 0 0);
-  --primary: oklch(0.627 0.183 149.572);
-  --primary-foreground: oklch(0.145 0 0);
-  --secondary: oklch(0.22 0 0);
-  --secondary-foreground: oklch(0.94 0 0);
-  --muted: oklch(0.22 0 0);
-  --muted-foreground: oklch(0.58 0 0);
-  --accent: oklch(0.22 0 0);
-  --accent-foreground: oklch(0.94 0 0);
-  --destructive: oklch(0.637 0.237 25.331);
-  --border: oklch(0.24 0 0);
-  --input: oklch(0.22 0 0);
-  --ring: oklch(0.627 0.183 149.572);
+  --background: var(--neo-page-bg);
+  --foreground: var(--neo-text-primary);
+  --card: var(--neo-surface);
+  --card-foreground: var(--neo-text-primary);
+  --popover: var(--neo-surface-hover);
+  --popover-foreground: var(--neo-text-primary);
+  --primary: var(--neo-pink);
+  --primary-foreground: #000;
+  --secondary: var(--neo-cyan);
+  --secondary-foreground: #000;
+  --muted: var(--neo-surface);
+  --muted-foreground: var(--neo-text-muted);
+  --accent: var(--neo-amber);
+  --accent-foreground: #000;
+  --destructive: var(--neo-red);
+  --destructive-foreground: #FFF;
+  --border: #000;
+  --input: #FFF;
+  --ring: var(--neo-cyan);
 }
 
+/* ===== Neobrutalist Utility Classes ===== */
+@layer utilities {
+  /* Shadow classes — hard, zero blur */
+  .neo-shadow-sm { box-shadow: var(--neo-shadow-sm); }
+  .neo-shadow-md { box-shadow: var(--neo-shadow-md); }   /* default */
+  .neo-shadow-lg { box-shadow: var(--neo-shadow-lg); }
+  .neo-shadow-xl { box-shadow: var(--neo-shadow-xl); }
+
+  /* Colored shadow variants */
+  .neo-shadow-pink { box-shadow: 4px 4px 0 var(--neo-pink); }
+  .neo-shadow-cyan { box-shadow: 4px 4px 0 var(--neo-cyan); }
+  .neo-shadow-lime { box-shadow: 4px 4px 0 var(--neo-lime); }
+  .neo-shadow-amber { box-shadow: 4px 4px 0 var(--neo-amber); }
+
+  /* Hover lift effect (shadow grows + translate up) */
+  .neo-hover-lift {
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  .neo-hover-lift:hover {
+    box-shadow: 6px 6px 0 var(--neo-black);
+    transform: translate(-2px, -2px);
+  }
+
+  /* Active press effect (shadow shrinks + translate down) */
+  .neo-active-press:active {
+    box-shadow: 2px 2px 0 var(--neo-black);
+    transform: translate(2px, 2px);
+  }
+
+  /* Combined hover lift + active press */
+  .neo-button-like {
+    transition: box-shadow 0.1s ease, transform 0.1s ease;
+  }
+  .neo-button-like:hover {
+    box-shadow: 6px 6px 0 var(--neo-black);
+    transform: translate(-2px, -2px);
+  }
+  .neo-button-like:active {
+    box-shadow: 2px 2px 0 var(--neo-black);
+    transform: translate(2px, 2px);
+  }
+}
+
+/* ===== Base Layer ===== */
 @layer base {
   * {
     @apply border-border outline-ring/30;
   }
+
   body {
     @apply bg-background text-foreground antialiased;
+    background-color: var(--neo-page-bg);
+    color: var(--neo-text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { @apply bg-slate-700 rounded-full; }
-  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-600; }
+  /* Custom scrollbar — subtle, matches dark theme */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--neo-page-bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2A2A2A;
+    border: 1px solid var(--neo-black);
+    border-radius: 0; /* sharp for neobrutalism */
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3A3A3A;
+  }
 
+  /* Focus visible — bold ring, matches cyan accent */
   :focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background transition-shadow duration-150;
+    @apply outline-none ring-2 ring-cyan ring-offset-2 ring-offset-[var(--neo-page-bg)] transition-shadow duration-150;
+  }
+
+  /* Selection color — pink highlight */
+  ::selection {
+    background-color: var(--neo-pink);
+    color: #000;
   }
 }
 
+/* ===== Component Layer Overrides ===== */
+@layer components {
+  /* Neobrutalist card base class */
+  .neo-card {
+    @apply bg-card border-[var(--neo-border-thick)] shadow-md rounded-[var(--neo-radius-md)];
+  }
+
+  /* Neobrutalist button base class */
+  .neo-btn {
+    @apply font-bold uppercase tracking-wide transition-all duration-100 cursor-pointer;
+    border: 3px solid var(--neo-black);
+    box-shadow: 4px 4px 0 var(--neo-black);
+  }
+
+  .neo-btn:hover {
+    box-shadow: 6px 6px 0 var(--neo-black);
+    transform: translate(-2px, -2px);
+  }
+
+  .neo-btn:active {
+    box-shadow: 2px 2px 0 var(--neo-black);
+    transform: translate(2px, 2px);
+  }
+
+  /* Neobrutalist input base class */
+  .neo-input {
+    @apply bg-white border-[var(--neo-border-thick)] text-slate-900;
+    box-shadow: none;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  .neo-input:focus {
+    outline: none;
+    box-shadow: 4px 4px 0 var(--neo-black);
+    border-color: var(--neo-pink);
+  }
+
+  /* File type color strip for upload list */
+  .file-strip--image { border-left: 4px solid var(--neo-pink); }
+  .file-strip--video { border-left: 4px solid var(--neo-cyan); }
+  .file-strip--audio { border-left: 4px solid var(--neo-amber); }
+  .file-strip--archive { border-left: 4px solid var(--neo-lime); }
+  .file-strip--code { border-left: 4px solid var(--neo-purple); }
+}
+
+/* ===== Reduced Motion Support ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .neo-hover-lift:hover {
+    transform: none;
+    box-shadow: var(--neo-shadow-lg);
+  }
+
+  .neo-button-like:hover,
+  .neo-button-like:active {
+    transform: none;
+  }
+}
+
+/* ===== Legacy shadcn Progress Bar Override (neobrutalist style) ===== */
 .dark [role="progressbar"] > div {
-  background-color: oklch(0.627 0.183 149.572) !important;
+  background-color: var(--neo-pink) !important;
+  box-shadow: inset -2px -2px 0 rgba(0,0,0,0.3); /* hard inner shadow for pressed look */
 }
 .dark [role="progressbar"] {
-  background-color: oklch(0.2 0 0 / 1) !important;
+  background-color: #1A1A1A !important;
+  border: 2px solid var(--neo-black);
 }
