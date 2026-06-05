@@ -168,7 +168,7 @@ export function MyUploads() {
 
       {/* Drawer Side Panel */}
       <div
-        className={`fixed top-0 right-0 z-50 h-screen w-full sm:w-[460px] bg-slate-950 border-l border-slate-900 shadow-2xl p-6 flex flex-col gap-6 transition-transform duration-300 ease-out ${
+        className={`fixed top-0 right-0 z-50 h-screen w-full sm:w-[520px] bg-slate-950 border-l border-slate-900 shadow-2xl p-6 flex flex-col gap-6 transition-transform duration-300 ease-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
