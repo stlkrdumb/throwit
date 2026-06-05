@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useCurrentAccount, useDAppKit } from '@mysten/dapp-kit-react';
+import { useState, useEffect } from 'react';
+import { useCurrentAccount } from '@mysten/dapp-kit-react';
 import { UploadWrapper } from '@/components/UploadWrapper';
 import { MyUploadsWrapper } from '@/components/MyUploadsWrapper';
 import { WalletButton } from '@/components/WalletButton';
-import { Loader2 } from 'lucide-react';
+import { Shield, HardDrive, LayoutGrid, Loader2, Lock } from 'lucide-react';
 
 export default function Dashboard() {
   const account = useCurrentAccount();
-  const dAppKit = useDAppKit();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -18,66 +17,77 @@ export default function Dashboard() {
 
   if (!mounted) {
     return (
-      <div className="flex-1 w-full flex items-center justify-center bg-slate-950">
-        <Loader2 className="h-6 w-6 animate-spin text-emerald-400" />
+      <div className="flex-1 w-full flex items-center justify-center bg-slate-950 min-h-[calc(100vh-69px)]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
+          <span className="text-sm font-medium text-slate-400">Loading Workspace...</span>
+        </div>
       </div>
     );
   }
 
-  // Not connected: premium request card
+  // Not connected state: show premium request card
   if (!account) {
     return (
-      <div className="flex-1 w-full min-h-[100dvh] bg-slate-950 flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-sm rounded-2xl border border-slate-800/60 bg-slate-900/30 backdrop-blur-sm text-center flex flex-col items-center gap-5 px-8 py-10">
-          <div className="h-12 w-12 rounded-xl bg-emerald-500/10 flex items-center justify-center ring-1 ring-emerald-500/20">
-            <svg className="h-5 w-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect width="18" height="11" x="3" y="11" rx="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-            </svg>
-          </div>
+      <div className="relative flex-1 w-full min-h-[calc(100vh-69px)] bg-slate-950 flex flex-col items-center justify-center p-6 overflow-hidden">
+        {/* Glowing auras */}
+        <div className="absolute top-[-20%] left-[-10%] h-[500px] w-[500px] rounded-full bg-violet-600/5 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-20%] right-[-10%] h-[500px] w-[500px] rounded-full bg-emerald-600/5 blur-[120px] pointer-events-none" />
 
+        <div className="relative z-10 w-full max-w-md p-8 rounded-2xl border border-slate-900 bg-slate-900/30 backdrop-blur-md text-center flex flex-col items-center gap-5">
+          <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center">
+            <Lock className="h-5 w-5 text-emerald-400" />
+          </div>
+          
           <div className="space-y-2">
-            <h1 className="text-lg font-semibold text-slate-100">Access Required</h1>
-            <p className="text-xs text-slate-400 leading-relaxed max-w-[260px] mx-auto">
-              Connect your Sui wallet to access your encrypted file sharing workspace. Encrypt, store on Walrus, and manage refunds.
+            <h1 className="text-xl font-bold text-slate-100">Access Restricted</h1>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Connect your Sui wallet to access your encrypted sharing workspace. You will be able to encrypt files, pay for Walrus blob storage, and manage refunds.
             </p>
           </div>
 
-          <WalletButton />
+          <div className="mt-2">
+            <WalletButton />
+          </div>
         </div>
       </div>
     );
   }
 
-  // Connected: bento dashboard layout
+  // Connected state: show centered file-sharing console
   return (
-    <div className="flex-1 w-full min-h-[100dvh] bg-slate-950 p-4 sm:p-6">
-      {/* Top bar */}
-      <div className="max-w-5xl mx-auto mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-base font-semibold text-slate-100">Workspace</h1>
-          <p className="text-[10px] text-slate-500 mt-0.5">Encrypted file sharing on Walrus · {account.address.slice(0, 6)}…{account.address.slice(-4)}</p>
+    <div className="relative flex-1 w-full min-h-[calc(100vh-69px)] bg-slate-950 overflow-hidden flex flex-col items-center justify-center p-6">
+      {/* Decorative ambient gradients */}
+      <div className="absolute top-[-30%] left-[-10%] h-[600px] w-[600px] rounded-full bg-violet-600/5 blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-[-30%] right-[-10%] h-[600px] w-[600px] rounded-full bg-emerald-600/5 blur-[150px] pointer-events-none" />
+
+      {/* Background grid overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none" />
+
+      <div className="relative z-10 w-full max-w-md flex flex-col gap-6">
+        {/* Workspace title details */}
+        <div className="text-center space-y-1">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-[10px] text-emerald-400 font-medium uppercase tracking-wider">
+            <LayoutGrid className="h-3 w-3" />
+            Sui Storage Workspace
+          </div>
+          <h1 className="text-xl font-bold text-slate-100">Send Encrypted Files</h1>
+          <p className="text-xs text-slate-500 max-w-xs mx-auto">
+            Encrypt and push files directly to decentralized Walrus storage nodes.
+          </p>
         </div>
-        <button
-          onClick={() => dAppKit.disconnectWallet()}
-          className="px-3 h-8 rounded-lg border border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-xs text-slate-400 hover:text-slate-200 transition-colors"
-        >
-          Disconnect
-        </button>
+
+        {/* Upload card container */}
+        <div className="relative group">
+          <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-emerald-500/25 to-indigo-500/25 opacity-30 blur-xl group-hover:opacity-40 transition duration-300" />
+          <div className="relative z-10 w-full">
+            <UploadWrapper />
+          </div>
+        </div>
       </div>
 
-      {/* Bento grid */}
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-[1fr_1.3fr] gap-4">
-        {/* Upload Card */}
-        <div className="rounded-2xl border border-slate-800/60 bg-slate-900/30 backdrop-blur-sm p-6 min-h-[500px]">
-          <UploadWrapper />
-        </div>
-
-        {/* My Uploads Panel */}
-        <div>
-          <MyUploadsWrapper />
-        </div>
-      </div>
+      {/* Slide-out History and Rebate Manager */}
+      <MyUploadsWrapper />
     </div>
   );
 }
