@@ -145,29 +145,17 @@ export default function DownloadPage({
   if (state === 'fetching' || state === 'decrypting') {
     return (
       <div className="flex-1 w-full min-h-[calc(100vh-69px)] bg-slate-950 flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-sm animate-in fade-in scale-95 duration-300">
-          {/* Icon ring — pulses */}
-          <div className="relative mx-auto mb-6">
-            {/* Outer ring spinning */}
-            <div className="h-20 w-20 rounded-full border-2 border-slate-800" />
+        <div className="w-full max-w-sm text-center animate-in fade-in duration-300">
+          {/* Loading ring */}
+          <div className="relative mx-auto mb-6 w-16 h-16">
             <div
-              className="absolute inset-0 h-20 w-20 rounded-full border-2 border-t-emerald-400 animate-spin"
-              style={{ animationDuration: '1.2s' }}
+              className="absolute inset-0 rounded-full border-2 border-t-emerald-400 animate-spin"
+              style={{ animationDuration: '0.9s' }}
             />
-            {/* Center icon */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              {state === 'fetching' ? (
-                <Download className="h-6 w-6 text-emerald-400" />
-              ) : (
-                <ArrowRightLeft className="h-6 w-6 text-violet-400 animate-pulse" />
-              )}
-            </div>
           </div>
 
-          {/* Status */}
-          <p className="text-sm font-medium text-slate-200 text-center">
-            {state === 'fetching' ? 'Fetching from Walrus…' : 'Decrypting locally…'}
-          </p>
+          {/* Filename */}
+          <p className="text-sm font-medium text-slate-300 truncate max-w-[260px] mx-auto">{parsed?.filename}</p>
         </div>
       </div>
     );
