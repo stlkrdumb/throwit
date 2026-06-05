@@ -1,7 +1,6 @@
 'use client';
 
 import { FileLock, Wallet, CloudUpload, ShieldCheck, CloudCheck } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
 import { useUploadContext } from '../context';
 
 type UploadStage = 'encrypting' | 'registering' | 'uploading' | 'certifying' | 'confirming';
@@ -15,28 +14,20 @@ function classifyStage(msg: string): UploadStage {
   return 'confirming';
 }
 
-const stageColors: Record<UploadStage, string> = {
-  encrypting: 'text-[var(--neo-pink)]',
-  registering: 'text-[var(--neo-purple)]',
-  uploading: 'text-[var(--neo-cyan)]',
-  certifying: 'text-[var(--neo-lime)]',
-  confirming: 'text-[var(--neo-amber)]',
-};
-
 const stageBg: Record<UploadStage, string> = {
-  encrypting: 'bg-[var(--neo-pink)]/15',
-  registering: 'bg-[var(--neo-purple)]/15',
-  uploading: 'bg-[var(--neo-cyan)]/15',
-  certifying: 'bg-[var(--neo-lime)]/15',
-  confirming: 'bg-[var(--neo-amber)]/15',
+  encrypting: 'bg-primary text-primary-foreground',
+  registering: 'bg-[#9C27B0] text-white',
+  uploading: 'bg-accent text-black',
+  certifying: 'bg-[#4CAF50] text-white',
+  confirming: 'bg-secondary text-black',
 };
 
 const stageIcons: Record<UploadStage, React.ReactNode> = {
-  encrypting: <FileLock className={`h-6 w-6 ${stageColors.encrypting}`} />,
-  registering: <Wallet className={`h-6 w-6 ${stageColors.registering}`} />,
-  uploading: <CloudUpload className={`h-6 w-6 ${stageColors.uploading}`} />,
-  certifying: <ShieldCheck className={`h-6 w-6 ${stageColors.certifying}`} />,
-  confirming: <CloudCheck className={`h-6 w-6 ${stageColors.confirming}`} />,
+  encrypting: <FileLock className="h-6 w-6" />,
+  registering: <Wallet className="h-6 w-6" />,
+  uploading: <CloudUpload className="h-6 w-6" />,
+  certifying: <ShieldCheck className="h-6 w-6" />,
+  confirming: <CloudCheck className="h-6 w-6" />,
 };
 
 export function LoadingState() {
@@ -47,22 +38,26 @@ export function LoadingState() {
   return (
     <div className="flex flex-col items-center gap-3 py-10">
       {/* Icon changes per stage */}
-      <div className={`h-12 w-12 rounded-[var(--neo-radius-md)] ${stageBg[stage]} border-[2px] border-current ${stageColors[stage]} flex items-center justify-center neo-shadow-sm`}>
+      <div className={`h-12 w-12 rounded-[4px] ${stageBg[stage]} border-3 border-black flex items-center justify-center shadow-[3px_3px_0_var(--color-secondary)]`}>
         {stageIcons[stage]}
       </div>
 
       {/* Status text */}
-      <p className="text-sm font-bold uppercase tracking-wide text-[var(--neo-text-primary)]">{progressMessage}</p>
+      <p className="text-sm font-black uppercase tracking-wider text-foreground mt-2 text-center">{progressMessage}</p>
 
       {/* Progress bar — neobrutalist style */}
-      <div className="w-full max-w-xs">
-        <div className="h-2 bg-slate-800 border-[var(--neo-border-bold)] rounded-sm overflow-hidden">
+      <div className="w-full max-w-xs mt-2">
+        <div className="h-6 bg-muted border-3 border-black rounded-[4px] overflow-hidden relative shadow-[3px_3px_0_var(--color-secondary)]">
           <div
-            className="h-full bg-[var(--neo-pink)] transition-all duration-300"
+            className="h-full bg-secondary border-r-3 border-black transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
+          <div className="absolute inset-0 flex items-center justify-center text-xs font-mono font-black text-foreground mix-blend-difference">
+            {progress}%
+          </div>
         </div>
       </div>
     </div>
   );
 }
+

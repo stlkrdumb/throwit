@@ -13,15 +13,15 @@ import { ErrorState } from './states/error';
 
 function UploadCardHeader() {
   return (
-    <div className="px-4 py-4 border-b-[var(--neo-border-bold)] flex items-center gap-3 bg-[var(--neo-surface-hover)]">
-      <div className="h-9 w-9 rounded-[var(--neo-radius-md)] bg-[var(--neo-pink)]/15 border-[2px] border-[var(--neo-pink)] flex items-center justify-center shrink-0 neo-shadow-sm">
-        <Upload className="h-4.5 w-4.5 text-[var(--neo-pink)]" style={{ fontSize: '18px' }} />
+    <div className="px-4 py-3 border-b-3 border-black flex items-center gap-3 bg-secondary text-black">
+      <div className="h-9 w-9 rounded-[4px] bg-white border-2 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0_#000]">
+        <Upload className="h-4.5 w-4.5 text-black" style={{ fontSize: '18px' }} />
       </div>
       <div>
-        <h2 className="text-sm font-bold tracking-tight uppercase text-[var(--neo-text-primary)]">Upload File</h2>
-        <p className="text-[10px] font-mono text-[var(--neo-text-muted)] flex items-center gap-1.5 mt-0.5">
-          <ShieldCheck className="h-3 w-3 text-[var(--neo-lime)]" />
-          E2E encrypted · stored on Walrus
+        <h2 className="text-base font-black tracking-tight uppercase text-black">Upload File</h2>
+        <p className="text-xs font-mono text-black flex items-center gap-1.5 mt-0.5">
+          <ShieldCheck className="h-3 w-3 text-black" />
+          E2E ENCRYPTED · SUI & WALRUS
         </p>
       </div>
     </div>
@@ -30,7 +30,7 @@ function UploadCardHeader() {
 
 function UploadCardFrame({ children }: { children: React.ReactNode }) {
   return (
-    <Card className="border-[var(--neo-border-thick)] bg-[var(--neo-surface)] shadow-md rounded-[var(--neo-radius-md)] overflow-hidden">
+    <Card className="border-3 border-black bg-card shadow-[6px_6px_0_var(--color-secondary)] rounded-[4px] overflow-hidden text-foreground">
       <div className="p-5 space-y-5">
         {children}
       </div>

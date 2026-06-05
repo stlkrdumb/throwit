@@ -12,7 +12,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col gap-4 rounded-[var(--neo-radius-md)] border-[3px] border-black bg-white py-4 text-sm text-[var(--neo-text-primary)] neo-shadow-lg",
+        "group/card flex flex-col gap-4 rounded-[var(--neo-radius-md)] border-[3px] border-black bg-card py-4 text-sm text-foreground neo-shadow-lg",
         "has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0",
         "data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0",
         className
@@ -54,7 +54,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-xs font-mono text-[var(--neo-text-muted)]", className)}
+      className={cn("text-xs font-mono text-muted-foreground", className)}
       {...props}
     />
   )

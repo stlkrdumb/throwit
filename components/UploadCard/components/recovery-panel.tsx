@@ -23,13 +23,12 @@ function RecoveryActions({ actions }: { actions: RecoveryAction[] }) {
     <div className="flex flex-wrap gap-2">
       {actions.map((action) => {
         const Icon = action.icon;
-        const base = 'inline-flex items-center gap-1 px-3 py-1.5 rounded-[var(--neo-radius-sm)] text-[10px] font-bold uppercase tracking-wide transition-all';
+        const base = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[10px] font-black uppercase tracking-wider transition-all duration-100 cursor-pointer border-2 border-black';
         const style = action.variant === 'secondary'
-          ? `border-[2px] border-slate-700 hover:-translate-y-[1px] text-[var(--neo-text-muted)]` + ` bg-transparent`
-          : 'border-[2px] border-black bg-[var(--neo-red)] text-white hover:-translate-y-[1px]';
-        const shadow = action.variant === 'secondary' ? '' : ` neo-button-like`;
+          ? 'bg-card text-foreground shadow-[2px_2px_0_var(--color-secondary)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_var(--color-secondary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-secondary)]'
+          : 'bg-destructive text-white shadow-[2px_2px_0_var(--color-primary)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_var(--color-primary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-primary)]';
         return (
-          <button key={action.label} onClick={action.onClick} className={`${base} ${style} ${shadow}`}>
+          <button key={action.label} onClick={action.onClick} className={`${base} ${style}`}>
             <Icon className="h-3 w-3" />
             {action.label}
           </button>
@@ -58,7 +57,7 @@ export function RecoveryPanel({ errorType, errorMessage, onRetry, onReset }: Rec
             href="https://faucet.sui.io/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-red-300 underline decoration-red-800 hover:decoration-red-600"
+            className="text-destructive font-bold underline hover:text-red-700"
           >
             Sui faucet
           </a>.
@@ -99,26 +98,11 @@ export function RecoveryPanel({ errorType, errorMessage, onRetry, onReset }: Rec
   }
 
   const panel = panels[errorType]!;
-  const borderMap = {
-    'wallet-rejected': 'border-amber-900/30',
-    'insufficient-funds': 'border-red-900/30',
-    'network-timeout': 'border-orange-900/30',
-    'blob-encoding': 'border-red-900/30',
-    unknown: 'border-slate-700',
-  };
-
-  const bgMap = {
-    'wallet-rejected': 'bg-amber-950/10',
-    'insufficient-funds': 'bg-red-950/10',
-    'network-timeout': 'bg-orange-950/10',
-    'blob-encoding': 'bg-red-950/10',
-    unknown: 'bg-slate-950/40',
-  };
 
   return (
-    <div className={`p-3 rounded-[var(--neo-radius-md)] border-[var(--neo-border-bold)] ${borderMap[errorType]} ${bgMap[errorType]} flex flex-col gap-2 neo-shadow-sm`}>
-      <p className="text-[10px] font-bold text-[var(--neo-red)] uppercase tracking-wider">{panel.title}</p>
-      <p className="text-[10px] font-mono text-[var(--neo-text-muted)]">{panel.description}</p>
+    <div className="p-3 rounded-[4px] border-3 border-black bg-card flex flex-col gap-2 shadow-[4px_4px_0_var(--color-secondary)]">
+      <p className="text-[10px] font-black text-destructive uppercase tracking-wider">{panel.title}</p>
+      <p className="text-[10px] font-mono text-foreground font-semibold leading-relaxed">{panel.description}</p>
       <RecoveryActions actions={panel.actions} />
     </div>
   );

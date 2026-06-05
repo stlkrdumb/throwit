@@ -151,7 +151,6 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'application/octet-stream': ['.bin', '.zip', '.png', '.jpg', '.gif', '.pdf', '.mp4', '.docx'] },
     maxFiles: 10,
     maxSize: MAX_FILE_SIZE,
     onDropAccepted: () => setError(null),

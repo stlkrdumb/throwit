@@ -2,7 +2,6 @@
 
 import { Clock3, Trash2 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 import { EXPIRY_OPTIONS, ExpiryOption, formatFileSize } from '@/hooks/useFileUpload';
 import { useUploadContext } from '../context';
 import { WalletButton } from '@/components/WalletButton';
@@ -21,45 +20,50 @@ export function ReadyState() {
       {/* File list — neobrutalist panel */}
       <div className="space-y-2">
         {fileInfos.map((info, i) => (
-          <div key={i} className="flex items-center gap-3 p-3 rounded-[var(--neo-radius-sm)] border-[2px] border-slate-800 bg-[var(--neo-page-bg)] group hover:border-slate-700 transition-all neo-hover-lift">
+          <div
+            key={i}
+            className="flex items-center gap-3 p-3 rounded-[4px] border-2 border-black bg-muted group hover:bg-background shadow-[2px_2px_0_var(--color-secondary)] transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_var(--color-secondary)]"
+          >
             {account ? (
               <button
                 type="button"
                 onClick={() => removeFile(i)}
-                className="opacity-0 group-hover:opacity-100 h-6 w-6 rounded-[var(--neo-radius-sm)] flex items-center justify-center hover:bg-[var(--neo-red)]/20 text-[var(--neo-text-muted)] hover:text-[var(--neo-red)] transition-all shrink-0"
+                className="opacity-0 group-hover:opacity-100 h-6 w-6 rounded-[4px] border-2 border-black flex items-center justify-center bg-card text-foreground hover:bg-destructive hover:text-white transition-all shrink-0 cursor-pointer"
                 title={`Remove ${info.name}`}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
             ) : null}
-            <span className="text-xs font-mono text-[var(--neo-text-muted)] w-5 shrink-0">{i + 1}</span>
+            <span className="text-xs font-mono text-foreground w-5 shrink-0">{i + 1}</span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-[var(--neo-text-primary)] truncate font-medium">{info.name}</p>
-              <p className="text-[10px] font-mono text-[var(--neo-text-muted)]">{formatFileSize(info.size)}</p>
+              <p className="text-sm text-foreground truncate font-bold uppercase tracking-wide">{info.name}</p>
+              <p className="text-xs font-mono text-muted-foreground font-semibold">{formatFileSize(info.size)}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Total */}
-      <div className="flex items-center justify-between text-xs px-1 py-2 border-t-[var(--neo-border-bold)] border-slate-800">
-        <span className="text-[var(--neo-text-muted)] uppercase font-bold">{fileInfos.length} file{fileInfos.length > 1 ? 's' : ''}</span>
-        <span className="font-mono text-[var(--neo-text-primary)]">{formatFileSize(totalSize)}</span>
+      <div className="flex items-center justify-between text-xs px-1 py-2.5 border-t-3 border-black">
+        <span className="text-foreground uppercase font-black tracking-wide">
+          {fileInfos.length} file{fileInfos.length > 1 ? 's' : ''}
+        </span>
+        <span className="font-mono font-black text-foreground">{formatFileSize(totalSize)}</span>
       </div>
 
       {/* Expiry */}
       <div className="space-y-2">
-        <label className="text-xs font-bold uppercase tracking-wide text-[var(--neo-text-muted)] flex items-center gap-1.5">
-          <Clock3 className="h-3.5 w-3.5 text-[var(--neo-cyan)]" />
+        <label className="text-xs font-black uppercase tracking-wide text-foreground flex items-center gap-1.5">
+          <Clock3 className="h-3.5 w-3.5 text-secondary" />
           Storage Duration
         </label>
         <Tabs value={String(selectedHours)} onValueChange={(v) => setSelectedHours(Number(v))}>
-          <TabsList className="w-full grid grid-cols-4 bg-[var(--neo-page-bg)] border-[var(--neo-border-bold)] rounded-[var(--neo-radius-sm)]">
+          <TabsList className="w-full grid grid-cols-4 bg-muted border-3 border-black rounded-[4px] p-1 gap-1 h-auto">
             {EXPIRY_OPTIONS.map((opt: ExpiryOption) => (
               <TabsTrigger
                 key={opt.label}
                 value={String(opt.hours)}
-                className="text-xs font-bold uppercase tracking-wide text-[var(--neo-text-muted)] hover:text-[var(--neo-text-primary)] data-[state=active]:bg-[var(--neo-cyan)]/20 data-[state=active]:text-[var(--neo-cyan)] ring-0 focus-visible:ring-0"
+                className="text-xs font-black uppercase tracking-wider text-muted-foreground py-2 hover:bg-secondary/20 hover:text-foreground data-[state=active]:bg-secondary data-[state=active]:text-black data-[state=active]:border-2 data-[state=active]:border-black data-[state=active]:shadow-[2px_2px_0_var(--color-secondary)] rounded-[4px] border-2 border-transparent transition-all outline-none cursor-pointer"
               >
                 {opt.label}
               </TabsTrigger>
@@ -70,15 +74,14 @@ export function ReadyState() {
         {account ? (
           <button
             onClick={executeUpload}
-            className="w-full text-sm font-bold uppercase tracking-wide py-3 rounded-[var(--neo-radius-sm)] border-[3px] border-black bg-[var(--neo-pink)] text-black hover:-translate-y-[2px] transition-all duration-100 active:translate-y-[1px]"
-            style={{ boxShadow: '4px 4px 0 var(--neo-black)' }}
+            className="w-full text-sm font-black uppercase tracking-wider py-3 rounded-[4px] border-3 border-black bg-primary text-primary-foreground shadow-[4px_4px_0_var(--color-primary)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_var(--color-primary)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_var(--color-primary)] transition-all duration-100 cursor-pointer"
           >
             Encrypt & Upload {fileInfos.length > 1 ? `(${fileInfos.length} FILES)` : ''}
           </button>
         ) : (
-          <div className="flex flex-col gap-3 p-4 rounded-[var(--neo-radius-md)] border-[var(--neo-border-bold)] bg-[var(--neo-page-bg)]">
-            <p className="text-xs font-mono text-[var(--neo-text-muted)] text-center">
-              CONNECT A WALLET TO UPLOAD
+          <div className="flex flex-col gap-3 p-4 rounded-[4px] border-3 border-black bg-muted shadow-[4px_4px_0_var(--color-secondary)]">
+            <p className="text-xs font-mono text-foreground font-bold text-center">
+              Connect a wallet to upload
             </p>
             <div className="flex justify-center">
               <WalletButton />
@@ -89,3 +92,4 @@ export function ReadyState() {
     </>
   );
 }
+

@@ -11,19 +11,19 @@ Privacy-conscious individuals and Web3 natives who want a decentralized, self-cu
 A client-side end-to-end encrypted file sharing application leveraging Walrus for storage and Sui for metadata and storage rebates. It enables zero-knowledge file distribution where decryption keys reside purely in the URL hash, allowing self-destructing file uploads and cost-effective hosting.
 
 ## Brand Personality
-Kinetic, high-tech, cyber-secure. Glowing technical dark grid aesthetic that prioritizes visual speed, safety, and modern cryptography.
+Bold, raw, high-contrast. Authentic neobrutalist digital aesthetic (inspired by Figma and Gumroad) that prioritizes high visual impact, clarity, and bold layout physics over soft gradients.
 
 ## Anti-references
-- Soft beige/cream-colored SaaS landing pages with brass accents and generic marketing copy.
-- Low-contrast, flat monochrome dashboards with hard-to-read grays.
-- Centralized platforms with hidden subscriptions and subscription-gated features.
+- Soft gradients, fuzzy drop shadows, and glassmorphism.
+- Monochromatic, low-contrast slate-gray dashboards.
+- Corporate marketing pages with generic, rounded beige components.
 
 ## Design Principles
-1. **Zero-Knowledge First**: Design interfaces where user keys never leave their browser. Decryption keys reside purely in URL hash fragments.
-2. **Reclaimable Ownership**: Visually reward the user for cleaning up on-chain space, showing storage refunds as tangible benefits.
-3. **High-Tech Visibility**: Use glowing states, technical grid details, and progressive loader sequences to convey active, secure cryptographic processes.
+1. **Honest Rawness**: Expose borders, controls, and structured steps with thick lines and bold boxes. No hidden visual layers.
+2. **Tactile Feedback**: Interactive buttons and inputs translate physically on hover and click, mimicking physical console button presses.
+3. **High-Contrast Safety**: Use flat primary colors and solid black borders to ensure readability and WCAG AA contrast compliance.
 
 ## Accessibility & Inclusion
-- Strict contrast checks (minimum 4.5:1 WCAG AA) for all text and interactive buttons.
-- Full support for `:focus-visible` ring outlines for keyboard-only navigation.
-- Smooth transitions respect user OS preferences for reduced motion (`prefers-reduced-motion`).
+- Strict contrast checks (minimum 7:1) using black borders and text on solid saturated colors.
+- Large, bold focus rings and outlines for clear keyboard navigation.
+- Simple, physics-based transitions that honor user OS preferences for reduced motion.

@@ -199,12 +199,12 @@ export function MyUploads() {
       {/* Floating Action Button (FAB) to toggle Drawer */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2.5 px-5 h-12 rounded-[var(--neo-radius-md)] bg-white text-black border-[3px] border-black font-bold uppercase tracking-wide text-xs shadow-[4px_4px_0_var(--neo-black)] hover:-translate-y-[2px] transition-all duration-100 active:translate-y-[1px] neo-button-like cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--neo-cyan)] focus-visible:ring-offset-2"
+        className="fixed bottom-12 right-6 z-40 inline-flex items-center gap-2.5 px-5 h-12 rounded-[4px] bg-secondary text-black border-3 border-black font-black uppercase tracking-wider text-xs shadow-[4px_4px_0_var(--color-secondary)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_var(--color-secondary)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_var(--color-secondary)] transition-all duration-100 cursor-pointer outline-none"
       >
-        <HardDrive className="h-4 w-4" />
+        <HardDrive className="h-4.5 w-4.5" />
         Active Shares
         {uploads.length > 0 && (
-          <span className="flex h-5 w-5 items-center justify-center rounded-[var(--neo-radius-sm)] bg-[var(--neo-pink)] border-[2px] border-black text-[10px] font-bold text-white">
+          <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-primary border-2 border-black text-[10px] font-black text-white ml-0.5">
             {uploads.length}
           </span>
         )}
@@ -213,31 +213,31 @@ export function MyUploads() {
       {/* Drawer Overlay (Backdrop) */}
       <div
         onClick={() => setIsOpen(false)}
-        className={`fixed inset-0 z-50 bg-[var(--neo-page-bg)]/80 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`fixed inset-0 z-50 bg-black/60 transition-opacity duration-200 ${
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       />
 
       {/* Drawer Side Panel */}
       <div
-        className={`fixed top-0 right-0 z-50 h-screen w-full sm:w-[520px] bg-[var(--neo-surface)] border-l-[3px] border-black shadow-xl p-6 flex flex-col gap-6 transition-transform duration-300 ease-out ${
+        className={`fixed top-0 right-0 z-50 h-screen w-full sm:w-[520px] bg-card border-l-4 border-black p-6 flex flex-col gap-6 transition-transform duration-300 ease-out shadow-[-8px_0_0_var(--color-primary)] ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Drawer Header */}
-        <div className="flex items-center justify-between border-b-[var(--neo-border-bold)] pb-4">
+        <div className="flex items-center justify-between border-b-3 border-black pb-4">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-[var(--neo-radius-md)] bg-[var(--neo-pink)]/15 border-[2px] border-[var(--neo-pink)] flex items-center justify-center neo-shadow-sm">
-              <HardDrive className="h-4 w-4 text-[var(--neo-pink)]" />
+            <div className="h-9 w-9 rounded-[4px] bg-primary border-2 border-black flex items-center justify-center shadow-[2px_2px_0_#000] text-black">
+              <HardDrive className="h-4.5 w-4.5 text-black" />
             </div>
             <div>
-              <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--neo-text-primary)]">Active Shares</h2>
-              <p className="text-[10px] font-mono text-[var(--neo-text-muted)]">MANAGE UPLOADS & STORAGE REBATES</p>
+              <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Active Shares</h2>
+              <p className="text-xs font-mono text-muted-foreground font-semibold">Manage Uploads & Storage Rebates</p>
             </div>
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            className="h-8 w-8 rounded-[var(--neo-radius-sm)] border-[2px] border-slate-800 bg-slate-950/40 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-all cursor-pointer neo-button-like"
+            className="h-8 w-8 rounded-[4px] border-2 border-black bg-card hover:bg-destructive hover:text-white flex items-center justify-center text-foreground transition-all cursor-pointer shadow-[2px_2px_0_var(--color-secondary)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_var(--color-secondary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-secondary)]"
           >
             <X className="h-4 w-4" />
           </button>
@@ -245,21 +245,21 @@ export function MyUploads() {
 
         {/* Stats Row */}
         {uploads.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 p-4 rounded-[var(--neo-radius-md)] border-[var(--neo-border-bold)] bg-[var(--neo-page-bg)] neo-shadow-sm">
+          <div className="grid grid-cols-2 gap-3 p-4 rounded-[4px] border-3 border-black bg-background shadow-[4px_4px_0_var(--color-primary)]">
             <div>
-              <p className="text-[10px] text-[var(--neo-text-muted)] uppercase font-bold">Active Files</p>
-              <p className="text-lg font-black text-[var(--neo-cyan)] font-mono mt-0.5">{uploads.length}</p>
+              <p className="text-xs text-foreground uppercase font-black tracking-wide">Active Files</p>
+              <p className="text-lg font-black text-foreground font-mono mt-0.5">{uploads.length}</p>
             </div>
             <div>
-              <p className="text-[10px] text-[var(--neo-text-muted)] uppercase font-bold">Staged Size</p>
-              <p className="text-lg font-black text-[var(--neo-text-primary)] font-mono mt-0.5">{formatFileSize(totalSizeBytes)}</p>
+              <p className="text-xs text-foreground uppercase font-black tracking-wide">Staged Size</p>
+              <p className="text-lg font-black text-foreground font-mono mt-0.5">{formatFileSize(totalSizeBytes)}</p>
             </div>
           </div>
         )}
 
         {/* Info Banner */}
-        <div className="flex gap-2.5 p-3 rounded-[var(--neo-radius-md)] border-[2px] border-[var(--neo-lime)]/30 bg-[var(--neo-lime)]/10 text-[10px] font-mono text-[var(--neo-text-muted)] leading-relaxed">
-          <Info className="h-4 w-4 text-[var(--neo-lime)] shrink-0 mt-0.5" />
+        <div className="flex gap-2.5 p-3 rounded-[4px] border-3 border-black bg-secondary text-xs font-mono text-black font-semibold leading-relaxed shadow-[4px_4px_0_var(--color-accent)]">
+          <Info className="h-4.5 w-4.5 text-black shrink-0 mt-0.5" />
           <span>
             WAL storage uses temporary epoch deposits. Self-destruct any file on-chain to instantly claim your refund.
           </span>
@@ -274,107 +274,109 @@ export function MyUploads() {
               const showEntries = isZip && expandedZip === index;
 
               return (
-              <div
-                key={item.blobId}
-                className={`flex items-center justify-between gap-4 p-3.5 rounded-[var(--neo-radius-md)] border-[2px] border-slate-800 bg-[var(--neo-page-bg)] hover:border-slate-700 transition-all neo-hover-lift ${fileType.stripClass}`}
-              >
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  {/* File type icon */}
-                  <div className={`h-8 w-8 rounded-[var(--neo-radius-sm)] border-2 flex items-center justify-center shrink-0 ${isZip ? 'bg-[var(--neo-lime)]/20 border-[var(--neo-lime)]' : ''}`} style={{ color: fileType.color }}>
-                    {fileType.icon}
-                  </div>
+                <div
+                  key={item.blobId}
+                  className="relative flex items-center justify-between gap-4 p-3.5 rounded-[4px] border-3 border-black bg-muted shadow-[4px_4px_0_var(--color-accent)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_var(--color-accent)] transition-all duration-100"
+                >
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    {/* File type icon */}
+                    <div className="h-9 w-9 rounded-[4px] border-2 border-black bg-card text-foreground shadow-[2px_2px_0_#000] flex items-center justify-center shrink-0">
+                      {fileType.icon}
+                    </div>
 
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[var(--neo-text-primary)] truncate">{item.filename}</p>
-                    <p className="text-[10px] font-mono text-[var(--neo-text-muted)] mt-0.5">
-                      {formatFileSize(item.size)} · {new Date(item.uploadedAt).toLocaleDateString()}
-                      {isZip ? (
-                        <button
-                          type="button"
-                          onClick={() => setExpandedZip(expandedZip === index ? null : index)}
-                          className="ml-1.5 text-[var(--neo-cyan)] hover:text-[var(--neo-lime)] transition-colors inline-flex items-center gap-0.5 uppercase font-bold tracking-wide"
-                        >
-                          {showEntries ? <ChevronUp className="h-2.5 w-2.5" /> : <ChevronDown className="h-2.5 w-2.5" />}
-                          Contents
-                        </button>
-                      ) : null}
-                    </p>
-                  </div>
-                </div>
-
-                {/* ZIP contents popup */}
-                {isZip && showEntries ? (
-                  <div className="absolute left-0 right-full mr-2 top-0 w-64 p-3 rounded-[var(--neo-radius-md)] border-[var(--neo-border-bold)] bg-[var(--neo-surface)] shadow-xl z-10 neo-shadow-lg">
-                    <p className="text-[10px] font-bold text-[var(--neo-text-primary)] uppercase tracking-wide mb-2">Contained Files</p>
-                    <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                      {(getEntryList(item, account.address) || []).map((e, ei) => (
-                        <div key={ei} className="flex items-center gap-2 py-1 px-2 rounded-[var(--neo-radius-sm)] hover:bg-slate-800/50 transition-colors">
-                          <span className="text-[9px] font-mono text-[var(--neo-text-muted)] w-3">{ei + 1}</span>
-                          <span className="text-[10px] font-medium text-[var(--neo-text-primary)] truncate flex-1">{e.name}</span>
-                          <span className="text-[9px] font-mono text-[var(--neo-text-muted)] shrink-0">{formatFileSize(e.size)}</span>
-                        </div>
-                      ))}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-foreground uppercase tracking-wide truncate">{item.filename}</p>
+                      <p className="text-xs font-mono text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5 flex-wrap">
+                        <span>{formatFileSize(item.size)}</span>
+                        <span>·</span>
+                        <span>{new Date(item.uploadedAt).toLocaleDateString()}</span>
+                        {isZip ? (
+                          <button
+                            type="button"
+                            onClick={() => setExpandedZip(expandedZip === index ? null : index)}
+                            className="text-primary hover:text-foreground font-black uppercase tracking-wider transition-colors inline-flex items-center gap-0.5 cursor-pointer underline"
+                          >
+                            {showEntries ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                            Contents
+                          </button>
+                        ) : null}
+                      </p>
                     </div>
                   </div>
-                ) : null}
 
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {/* View on Explorer */}
-                  <a
-                    href={`https://walruscan.com/${config.network}/blob/${item.blobId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="h-7 w-7 rounded-[var(--neo-radius-sm)] border-2 border-slate-800 bg-transparent hover:bg-[var(--neo-cyan)]/10 flex items-center justify-center text-[var(--neo-text-muted)] hover:text-[var(--neo-cyan)] transition-all cursor-pointer neo-button-like"
-                    title="View on Walrus Explorer"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
+                  {/* ZIP contents popup */}
+                  {isZip && showEntries ? (
+                    <div className="absolute right-full mr-3 top-0 w-64 p-3 rounded-[4px] border-3 border-black bg-card shadow-[6px_6px_0_var(--color-accent)] z-10 text-foreground">
+                      <p className="text-xs font-black text-foreground uppercase tracking-wider mb-2">Contained Files</p>
+                      <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                        {(getEntryList(item, account.address) || []).map((e, ei) => (
+                          <div key={ei} className="flex items-center gap-2 py-1 px-2 rounded-[4px] border border-transparent hover:bg-secondary hover:text-black transition-colors">
+                            <span className="text-[11px] font-mono text-muted-foreground font-semibold w-3">{ei + 1}</span>
+                            <span className="text-xs font-bold text-foreground truncate flex-1">{e.name}</span>
+                            <span className="text-[11px] font-mono text-muted-foreground font-semibold shrink-0">{formatFileSize(e.size)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
 
-                  {/* Copy Link */}
-                  <button
-                    onClick={() => handleCopy(item, index)}
-                    className="h-7 w-7 rounded-[var(--neo-radius-sm)] border-2 border-slate-800 bg-transparent hover:bg-[var(--neo-lime)]/10 flex items-center justify-center text-[var(--neo-text-muted)] transition-all cursor-pointer neo-button-like"
-                    title="Copy Share Link"
-                  >
-                    {copiedIndex === index ? (
-                      <Check className="h-3.5 w-3.5 text-[var(--neo-lime)]" />
-                    ) : (
-                      <Copy className="h-3.5 w-3.5" />
-                    )}
-                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {/* View on Explorer */}
+                    <a
+                      href={`https://walruscan.com/${config.network}/blob/${item.blobId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-8 w-8 rounded-[4px] border-2 border-black bg-card hover:bg-secondary flex items-center justify-center text-foreground hover:text-black shadow-[2px_2px_0_var(--color-primary)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_var(--color-primary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-primary)] transition-all cursor-pointer"
+                      title="View on Walrus Explorer"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
 
-                  {/* QR Code */}
-                  <button
-                    onClick={() => { setQrItem(item); setQrOpen(true); }}
-                    className="h-7 w-7 rounded-[var(--neo-radius-sm)] border-2 border-slate-800 bg-transparent hover:bg-[var(--neo-purple)]/10 flex items-center justify-center text-[var(--neo-text-muted)] transition-all cursor-pointer neo-button-like"
-                    title="Show QR Code"
-                  >
-                    <QrCode className="h-3.5 w-3.5" />
-                  </button>
+                    {/* Copy Link */}
+                    <button
+                      onClick={() => handleCopy(item, index)}
+                      className="h-8 w-8 rounded-[4px] border-2 border-black bg-card hover:bg-secondary flex items-center justify-center text-foreground hover:text-black shadow-[2px_2px_0_#B2FF59] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_#B2FF59] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_#B2FF59] transition-all cursor-pointer"
+                      title="Copy Share Link"
+                    >
+                      {copiedIndex === index ? (
+                        <Check className="h-3.5 w-3.5 text-green-600 font-bold" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
+                    </button>
 
-                  {/* Delete & Refund */}
-                  <button
-                    onClick={() => handleDelete(item, index)}
-                    disabled={deletingIndex !== null}
-                    className="h-7 w-7 rounded-[var(--neo-radius-sm)] border-2 border-slate-800 bg-transparent hover:bg-[var(--neo-red)]/10 flex items-center justify-center text-[var(--neo-text-muted)] hover:text-[var(--neo-red)] disabled:opacity-50 disabled:pointer-events-none transition-all cursor-pointer neo-button-like"
-                    title="Delete file & reclaim WAL deposit"
-                  >
-                    {deletingIndex === index ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--neo-red)]" />
-                    ) : (
-                      <Trash2 className="h-3.5 w-3.5" />
-                    )}
-                  </button>
+                    {/* QR Code */}
+                    <button
+                      onClick={() => { setQrItem(item); setQrOpen(true); }}
+                      className="h-8 w-8 rounded-[4px] border-2 border-black bg-card hover:bg-secondary flex items-center justify-center text-foreground hover:text-black shadow-[2px_2px_0_var(--color-primary)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_var(--color-primary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-primary)] transition-all cursor-pointer"
+                      title="Show QR Code"
+                    >
+                      <QrCode className="h-3.5 w-3.5" />
+                    </button>
+
+                    {/* Delete & Refund */}
+                    <button
+                      onClick={() => handleDelete(item, index)}
+                      disabled={deletingIndex !== null}
+                      className="h-8 w-8 rounded-[4px] border-2 border-black bg-card hover:bg-destructive hover:text-white flex items-center justify-center text-foreground shadow-[2px_2px_0_#FF5252] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_#FF5252] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_#FF5252] transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                      title="Delete file & reclaim WAL deposit"
+                    >
+                      {deletingIndex === index ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-destructive font-bold" />
+                      ) : (
+                        <Trash2 className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
               );
             })
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center border-[var(--neo-border-bold)] border-dashed rounded-[var(--neo-radius-md)]">
-              <ShieldAlert className="h-9 w-9 text-[var(--neo-text-muted)] mb-2.5" />
-              <p className="text-xs font-bold uppercase tracking-wide text-[var(--neo-text-primary)]">No Active Uploads</p>
-              <p className="text-[10px] font-mono text-[var(--neo-text-muted)] mt-2 max-w-[240px] leading-relaxed">
-                YOUR ENCRYPTED UPLOADS WILL APPEAR HERE FOR SHARING AND DELETION.
+            <div className="flex flex-col items-center justify-center py-12 text-center border-3 border-dashed border-black rounded-[4px] bg-muted shadow-[4px_4px_0_var(--color-secondary)] p-6">
+              <ShieldAlert className="h-10 w-10 text-foreground mb-3" />
+              <p className="text-xs font-black uppercase tracking-wider text-foreground">No Active Uploads</p>
+              <p className="text-xs text-muted-foreground font-medium mt-2 max-w-[240px] leading-relaxed">
+                Your encrypted uploads will appear here for sharing and deletion.
               </p>
             </div>
           )}
@@ -382,20 +384,20 @@ export function MyUploads() {
 
         {/* QR Code Dialog */}
         <Dialog open={qrOpen} onOpenChange={(open) => { setQrOpen(open); if (!open) setQrItem(null); }}>
-          <DialogContent className="border-[var(--neo-border-bold)] bg-[var(--neo-surface)] max-w-xs p-6 flex flex-col items-center text-center overscroll-y-contain neo-shadow-lg rounded-[var(--neo-radius-md)]">
+          <DialogContent className="border-3 border-black bg-card text-foreground max-w-xs p-6 flex flex-col items-center text-center overscroll-y-contain shadow-[8px_8px_0_var(--color-secondary)] rounded-[4px]">
             <DialogHeader className="gap-1 items-center">
-              <DialogTitle className="text-sm font-bold uppercase tracking-wide text-[var(--neo-text-primary)]">Scan QR Code</DialogTitle>
-              <DialogDescription className="text-[10px] font-mono text-[var(--neo-text-muted)]">
-                SCAN TO DOWNLOAD DIRECTLY ON MOBILE
+              <DialogTitle className="text-sm font-black uppercase tracking-wider text-foreground">Scan QR Code</DialogTitle>
+              <DialogDescription className="text-xs font-mono text-muted-foreground font-semibold">
+                Scan to download directly on mobile
               </DialogDescription>
             </DialogHeader>
             {qrItem && (
-              <div className="mt-4 p-3 bg-[var(--neo-page-bg)] border-[var(--neo-border-bold)] rounded-[var(--neo-radius-md)] flex items-center justify-center neo-shadow-sm">
+              <div className="mt-4 p-3 bg-white border-3 border-black rounded-[4px] flex items-center justify-center shadow-[4px_4px_0_var(--color-primary)]">
                 <QRCodeSVG
                   value={buildShareLink(qrItem.blobId, qrItem.keyB64, qrItem.ivB64, qrItem.filename)}
                   size={180}
-                  bgColor="#0A0A0A"
-                  fgColor="var(--neo-lime)"
+                  bgColor="#FFFFFF"
+                  fgColor="#000000"
                   level="M"
                   includeMargin={true}
                 />
@@ -407,3 +409,5 @@ export function MyUploads() {
     </>
   );
 }
+
+

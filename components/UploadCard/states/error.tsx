@@ -16,13 +16,13 @@ export function ErrorState() {
   return (
     <>
       {/* Header */}
-      <div className="px-4 py-4 border-b-[var(--neo-border-bold)] flex items-center gap-3 bg-[var(--neo-red)]/10">
-        <div className="h-9 w-9 rounded-[var(--neo-radius-md)] bg-[var(--neo-red)]/25 border-[2px] border-[var(--neo-red)] flex items-center justify-center shrink-0 neo-shadow-sm">
-          <AlertCircle className="h-4.5 w-4.5 text-[var(--neo-red)]" style={{ fontSize: '18px' }} />
+      <div className="px-4 py-4 border-b-3 border-black flex items-center gap-3 bg-destructive">
+        <div className="h-9 w-9 rounded-[4px] bg-white border-2 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0_#000]">
+          <AlertCircle className="h-4.5 w-4.5 text-black" style={{ fontSize: '18px' }} />
         </div>
         <div className="flex-1">
-          <h2 className="text-sm font-bold uppercase tracking-tight text-[var(--neo-text-primary)]">Upload Failed</h2>
-          <p className="text-[10px] font-mono text-[var(--neo-text-muted)]">SOMETHING WENT WRONG — YOU CAN RETRY OR START OVER</p>
+          <h2 className="text-sm font-black uppercase tracking-wider text-black">Upload Failed</h2>
+          <p className="text-[10px] font-mono text-black font-bold">SOMETHING WENT WRONG — YOU CAN RETRY OR START OVER</p>
         </div>
       </div>
 
@@ -32,9 +32,9 @@ export function ErrorState() {
 
       {error && (
         <>
-          <Alert variant="destructive" className="border-[3px] border-[var(--neo-red)] bg-[var(--neo-red)]/10 text-[var(--neo-red)] font-mono text-xs rounded-[var(--neo-radius-sm)]">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
+          <Alert className="border-3 border-black bg-card text-foreground font-mono text-xs rounded-[4px] shadow-[4px_4px_0_#FF5252] p-4 flex gap-3 items-center">
+            <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+            <AlertDescription className="font-mono text-xs font-bold uppercase text-foreground">{error}</AlertDescription>
           </Alert>
 
           <RecoveryPanel
@@ -48,3 +48,4 @@ export function ErrorState() {
     </>
   );
 }
+

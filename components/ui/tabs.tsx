@@ -58,9 +58,9 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
     <TabsPrimitive.Tab
       data-slot="tabs-trigger"
       className={cn(
-        "relative inline-flex h-[calc(100%-6px)] flex-1 items-center justify-center gap-1 rounded-[var(--neo-radius-xs)] border-2 border-transparent px-2 py-1 text-[10px] font-bold uppercase tracking-wide whitespace-nowrap text-[var(--neo-text-muted)] transition-all duration-100 hover:text-black group-data-vertical/tabs:w-full group-data-vertical/tabs:justify-start disabled:pointer-events-none disabled:opacity-50",
+        "relative inline-flex h-[calc(100%-6px)] flex-1 items-center justify-center gap-1 rounded-[var(--neo-radius-xs)] border-2 border-transparent px-2 py-1 text-[10px] font-bold uppercase tracking-wide whitespace-nowrap text-muted-foreground transition-all duration-100 hover:text-foreground group-data-vertical/tabs:w-full group-data-vertical/tabs:justify-start disabled:pointer-events-none disabled:opacity-50",
         "group-data-[variant=line]/tabs-list:data-active:border-black",
-        "data-active:bg-black data-active:text-white",
+        "data-active:bg-primary data-active:text-black",
         className
       )}
       {...props}

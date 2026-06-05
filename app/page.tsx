@@ -7,34 +7,32 @@ import { Shield, HardDrive, Key, Share2, ArrowRight, Coins, EyeOff } from 'lucid
 export default function Home() {
   const flowRef = useRef<HTMLDivElement>(null);
 
-  // Scroll into view when "How it works" is clicked or after a brief delay for scroll cue visibility
   useEffect(() => {
-    // Show scroll indicator briefly, then hint at the section below
     const timer = setTimeout(() => {
-      // subtle: flash the "scroll down" cue once so users know content continues
+      // scroll hint cue if needed
     }, 1500);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="relative min-h-[calc(100vh-69px)] w-full overflow-hidden bg-[var(--neo-cream)] flex flex-col justify-center py-16 md:py-24">
+    <div className="relative min-h-[calc(100vh-69px)] w-full overflow-hidden bg-background flex flex-col justify-center py-16 md:py-24">
       {/* Decorative geometric shapes — NO blurs, solid fills */}
-      <div className="absolute top-[8%] left-[4%] h-28 w-28 rounded-[var(--neo-radius-md)] bg-[var(--neo-pink)] border-[3px] border-black neo-shadow-sm -rotate-12 pointer-events-none" />
-      <div className="absolute bottom-[12%] right-[6%] h-32 w-32 rounded-full bg-[var(--neo-cyan)] border-[3px] border-black neo-shadow-sm pointer-events-none" />
-      <div className="absolute top-[45%] right-[12%] h-20 w-20 rounded-sm bg-[var(--neo-lime)] border-[3px] border-black neo-shadow-xs -rotate-45 pointer-events-none" />
+      <div className="absolute top-[8%] left-[4%] h-28 w-28 rounded-[4px] bg-primary border-3 border-black shadow-[4px_4px_0_var(--color-secondary)] -rotate-12 pointer-events-none" />
+      <div className="absolute bottom-[12%] right-[6%] h-32 w-32 rounded-full bg-accent border-3 border-black shadow-[4px_4px_0_#FFAB40] pointer-events-none" />
+      <div className="absolute top-[45%] right-[12%] h-20 w-20 bg-[#4CAF50] border-3 border-black shadow-[3px_3px_0_#4CAF50] rounded-[4px] -rotate-45 pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-5xl mx-auto px-6 flex flex-col items-center text-center gap-14">
         {/* Hero Copy */}
         <div className="space-y-6 max-w-3xl">
-          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight text-[var(--neo-text-primary)] leading-none uppercase" style={{ fontFamily: 'var(--font-neo-display)' }}>
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight text-foreground leading-none uppercase" style={{ fontFamily: 'var(--font-display)' }}>
             Throw your files.<br />
-            <span className="text-[var(--neo-red)]">
+            <span className="text-primary">
               Keep your secrets.
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-[var(--neo-text-muted)] leading-relaxed max-w-2xl mx-auto font-medium" style={{ fontFamily: 'var(--font-neo-body)' }}>
-            ENCRYPT FILES LOCALLY USING AES-256-GCM. SHARE SECURE LINKS WITH DECRYPTION KEYS STORED SOLELY IN THE URL HASH FRAGMENT.
+          <p className="text-lg sm:text-xl text-foreground leading-relaxed max-w-2xl mx-auto font-bold font-body">
+            Encrypt files locally using AES-256-GCM. Share secure links with decryption keys stored solely in the URL hash fragment.
           </p>
         </div>
 
@@ -42,10 +40,10 @@ export default function Home() {
         <div className="flex flex-col items-center gap-4">
           <LandingCTA />
 
-          {/* Scroll-down cue — bold arrow, NO animation dependency */}
-          <div className="flex flex-col items-center gap-1 text-[var(--neo-text-muted)]">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          {/* Scroll-down cue — bold arrow */}
+          <div className="flex flex-col items-center gap-1 text-foreground mt-2">
+            <svg className="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
           </div>
         </div>
@@ -53,13 +51,13 @@ export default function Home() {
         {/* How it works */}
         <div className="w-full">
           <div className="text-left mb-6">
-            <h2 className="text-xs font-black text-[var(--neo-pink)] tracking-wider uppercase" style={{ fontFamily: 'var(--font-neo-display)' }}>How It Works</h2>
-            <p className="text-sm font-bold text-[var(--neo-text-primary)] mt-0.5 uppercase">End-to-End Browser Encryption Flow</p>
+            <h2 className="text-base font-black text-primary tracking-widest uppercase">How It Works</h2>
+            <p className="text-lg font-black text-foreground mt-0.5 uppercase">End-to-End Browser Encryption Flow</p>
           </div>
 
           <div
             ref={flowRef}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 rounded-[var(--neo-radius-md)] border-[3px] border-black bg-[var(--neo-surface)] relative overflow-hidden neo-shadow-lg"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 rounded-[4px] border-3 border-black bg-card relative overflow-hidden shadow-[6px_6px_0_var(--color-secondary)]"
           >
             {[
               {
@@ -87,23 +85,18 @@ export default function Home() {
                 desc: "Receiver's browser retrieves and decrypts the bytes.",
               },
             ].map((item, index) => (
-              <div key={item.step} className="flex flex-col gap-3 text-left p-4 rounded-[var(--neo-radius-sm)] border-2 border-black bg-[var(--neo-surface-hover)] hover:bg-white transition-colors neo-active-press">
+              <div key={item.step} className="group flex flex-col gap-3 text-left p-4 rounded-[4px] border-2 border-black bg-muted hover:bg-secondary transition-all hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_var(--color-secondary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-secondary)] shadow-[2px_2px_0_var(--color-secondary)] cursor-pointer">
                 <div className="flex items-center justify-between">
-                  <div className="h-10 w-10 rounded-[var(--neo-radius-sm)] bg-[var(--neo-pink)] border-2 border-black flex items-center justify-center neo-shadow-sm">
-                    <item.icon className="h-5 w-5 text-white" />
+                  <div className="h-10 w-10 rounded-[4px] bg-primary border-2 border-black flex items-center justify-center shadow-[2px_2px_0_#000] text-black">
+                    <item.icon className="h-5 w-5 text-black" />
                   </div>
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black text-[var(--neo-pink)] tracking-wider">{item.step}</span>
-                    <h3 className="text-xs font-bold text-[var(--neo-text-primary)] uppercase">{item.title}</h3>
+                    <span className="text-xs font-black text-primary tracking-wider">{item.step}</span>
+                    <h3 className="text-sm font-black text-foreground group-hover:text-black uppercase">{item.title}</h3>
                   </div>
-                  {index < 3 && (
-                    <div className="my-2 flex items-center justify-end">
-                      <ArrowRight className="h-4 w-4 text-black" />
-                    </div>
-                  )}
-                  <p className="text-[11px] text-[var(--neo-text-muted)] mt-1 leading-relaxed">{item.desc}</p>
+                  <p className="text-xs text-muted-foreground group-hover:text-black font-medium mt-1.5 leading-relaxed">{item.desc}</p>
                 </div>
               </div>
             ))}
@@ -131,17 +124,17 @@ export default function Home() {
           ].map((item, idx) => (
             <div
               key={item.title}
-              className="p-5 rounded-[var(--neo-radius-md)] border-[3px] border-black bg-[var(--neo-surface)] flex flex-col gap-3.5 neo-shadow-lg hover:-translate-y-[2px] transition-all duration-100"
+              className="p-5 rounded-[4px] border-3 border-black bg-card flex flex-col gap-3.5 shadow-[6px_6px_0_var(--color-primary)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0_var(--color-primary)] transition-all duration-100"
               style={{
-                borderTop: idx === 0 ? '6px solid var(--neo-pink)' : idx === 1 ? '6px solid var(--neo-lime)' : '6px solid var(--neo-cyan)',
+                borderTop: idx === 0 ? '8px solid var(--color-primary)' : idx === 1 ? '8px solid #4CAF50' : '8px solid var(--color-accent)',
               }}
             >
-              <div className="h-9 w-9 rounded-[var(--neo-radius-sm)] border-3 border-black flex items-center justify-center neo-shadow-sm bg-[var(--neo-yellow)]">
+              <div className="h-9 w-9 rounded-[4px] border-2 border-black flex items-center justify-center shadow-[2px_2px_0_#000] bg-secondary text-black">
                 <item.icon className="h-4.5 w-4.5 text-black" />
               </div>
               <div className="space-y-1">
-                <h4 className="text-xs font-black uppercase tracking-wide text-[var(--neo-text-primary)]">{item.title}</h4>
-                <p className="text-[11px] text-[var(--neo-text-muted)] leading-relaxed">{item.desc}</p>
+                <h4 className="text-sm font-black uppercase tracking-wider text-foreground">{item.title}</h4>
+                <p className="text-xs text-muted-foreground font-medium leading-relaxed">{item.desc}</p>
               </div>
             </div>
           ))}
@@ -150,3 +143,4 @@ export default function Home() {
     </div>
   );
 }
+

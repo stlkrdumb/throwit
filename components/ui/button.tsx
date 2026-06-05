@@ -8,16 +8,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-white text-black shadow-[3px_3px_0_var(--neo-black)] hover:-translate-y-[2px] hover:shadow-[5px_5px_0_var(--neo-black)]",
+        default: "bg-card text-foreground shadow-[3px_3px_0_var(--color-secondary)] hover:-translate-y-[2px] hover:shadow-[5px_5px_0_var(--color-secondary)]",
         outline:
-          "bg-transparent border-2 border-slate-800 hover:bg-slate-100 text-[var(--neo-text-muted)] shadow-none hover:border-black",
+          "bg-transparent border-2 border-muted hover:bg-muted text-muted-foreground hover:text-foreground shadow-none hover:border-black",
         secondary:
-          "bg-[var(--neo-pink)] text-white shadow-[3px_3px_0_var(--neo-black)] hover:-translate-y-[2px] hover:shadow-[5px_5px_0_var(--neo-black)]",
+          "bg-[var(--color-primary)] text-[var(--color-primary-foreground)] shadow-[3px_3px_0_var(--color-primary)] hover:-translate-y-[2px] hover:shadow-[5px_5px_0_var(--color-primary)]",
         ghost:
-          "bg-transparent border-none shadow-none hover:bg-slate-100 text-[var(--neo-text-muted)]",
+          "bg-transparent border-none shadow-none hover:bg-muted text-muted-foreground hover:text-foreground",
         destructive:
-          "bg-[var(--neo-red)] text-white shadow-[3px_3px_0_var(--neo-black)] hover:-translate-y-[2px] hover:shadow-[5px_5px_0_var(--neo-black)]",
-        link: "text-[var(--neo-blue)] underline-offset-4 hover:underline border-none shadow-none bg-transparent rounded-none px-0",
+          "bg-[var(--color-destructive)] text-white shadow-[3px_3px_0_#000] hover:-translate-y-[2px] hover:shadow-[5px_5px_0_#000]",
+        link: "text-[var(--color-secondary)] underline-offset-4 hover:underline border-none shadow-none bg-transparent rounded-none px-0",
       },
       size: {
         default: "h-9 gap-1.5 px-3 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",

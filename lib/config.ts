@@ -3,10 +3,30 @@
 
 const network = (process.env.NEXT_PUBLIC_SUI_NETWORK ?? 'testnet') as 'testnet' | 'mainnet';
 
+export function getActiveRpcUrl(net: 'testnet' | 'mainnet'): string {
+  if (typeof window === 'undefined') {
+    // SSR default: use Tatum SUI Gateway
+    return net === 'mainnet'
+      ? (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-mainnet.gateway.tatum.io')
+      : (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-testnet.gateway.tatum.io');
+  }
+
+  const provider = localStorage.getItem('throwit_rpc_provider') || 'tatum';
+  if (provider === 'official') {
+    return net === 'mainnet'
+      ? 'https://fullnode.mainnet.sui.io:443'
+      : 'https://fullnode.testnet.sui.io:443';
+  } else {
+    // Default to Tatum SUI Gateway
+    return net === 'mainnet'
+      ? (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-mainnet.gateway.tatum.io')
+      : (process.env.NEXT_PUBLIC_TATUM_RPC || 'https://sui-testnet.gateway.tatum.io');
+  }
+}
+
 export const config = {
   network,
-  rpc: process.env.NEXT_PUBLIC_TATUM_RPC || 
-    (network === 'mainnet' ? 'https://fullnode.mainnet.sui.io:443' : 'https://fullnode.testnet.sui.io:443'),
+  get rpc() { return getActiveRpcUrl(network); },
   aggregator: process.env.NEXT_PUBLIC_WALRUS_AGGREGATOR || 
     (network === 'mainnet' ? 'https://aggregator.walrus.site' : 'https://aggregator.testnet.walrus.site'),
   appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
