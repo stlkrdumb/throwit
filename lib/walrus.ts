@@ -1,23 +1,28 @@
 import { WalrusClient } from '@mysten/walrus';
-import { SuiJsonRpcClient } from '@mysten/sui/jsonRpc';
+import { SuiGrpcClient } from '@mysten/sui/grpc';
 import { Signer } from '@mysten/sui/cryptography';
-import { config, getRpcHeaders, FallbackTransport, getRpcFallbackUrls } from './config';
+import { config } from './config';
 
 // WASM URL for blob encoding — needed for browser usage
 // Loaded from CDN in browser; Node.js fallback handled by SDK
 const WALRUS_WASM_URL =
   'https://cdn.jsdelivr.net/npm/@mysten/walrus-wasm@latest/web/walrus_wasm_bg.wasm';
 
+function getGrpcUrl(network: 'testnet' | 'mainnet'): string {
+  // Use the official Sui fullnode gRPC endpoint
+  // These endpoints support gRPC-Web (which SuiGrpcClient uses)
+  if (network === 'mainnet') {
+    return 'https://fullnode.mainnet.sui.io:443';
+  }
+  return 'https://fullnode.testnet.sui.io:443';
+}
+
 function getClientConfig() {
-  const transport = new FallbackTransport(
-    getRpcFallbackUrls(config.network),
-    getRpcHeaders()
-  );
   return {
     network: config.network,
-    suiClient: new SuiJsonRpcClient({
+    suiClient: new SuiGrpcClient({
       network: config.network,
-      transport,
+      baseUrl: getGrpcUrl(config.network),
     }),
     wasmUrl: WALRUS_WASM_URL,
   };

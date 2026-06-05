@@ -1,18 +1,20 @@
 import { createDAppKit } from '@mysten/dapp-kit-react';
-import { SuiJsonRpcClient } from '@mysten/sui/jsonRpc';
-import { getRpcHeaders, FallbackTransport, getRpcFallbackUrls } from '@/lib/config';
+import { SuiGrpcClient } from '@mysten/sui/grpc';
+
+function getGrpcUrl(network: 'testnet' | 'mainnet'): string {
+  if (network === 'mainnet') {
+    return 'https://fullnode.mainnet.sui.io:443';
+  }
+  return 'https://fullnode.testnet.sui.io:443';
+}
 
 export const dAppKit = createDAppKit({
   networks: ['testnet', 'mainnet'],
   defaultNetwork: (process.env.NEXT_PUBLIC_SUI_NETWORK ?? 'testnet') as 'testnet' | 'mainnet',
   createClient: (network) => {
-    const transport = new FallbackTransport(
-      getRpcFallbackUrls(network),
-      getRpcHeaders()
-    );
-    return new SuiJsonRpcClient({
+    return new SuiGrpcClient({
       network,
-      transport,
+      baseUrl: getGrpcUrl(network),
     });
   },
   autoConnect: true,
