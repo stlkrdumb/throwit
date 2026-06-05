@@ -477,6 +477,7 @@ function classifyError(err: unknown): UploadErrorType {
     if (msg.includes('insufficient') || msg.includes('balance') || msg.includes('gas')) return 'insufficient-funds';
     if (msg.includes('timeout')) return 'network-timeout';
     if (msg.includes('fetch failed') || msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('ssl') || msg.includes('cert')) return 'walrus-nodes-error';
+    if (msg.includes('notenoughblobconfirmations') || msg.includes('failures while writing') || msg.includes('write sliver') || msg.includes('store sliver')) return 'walrus-nodes-error';
     if (msg.includes('encode') || msg.includes('blob') || msg.includes('size')) return 'blob-encoding';
   }
   return 'unknown';

@@ -74,11 +74,13 @@ export async function DELETE(request: NextRequest) {
 }
 
 async function handleProxy(request: NextRequest) {
+  const targetUrl = request.nextUrl.searchParams.get('target');
   try {
-    const targetUrl = request.nextUrl.searchParams.get('target');
     if (!targetUrl) {
       return NextResponse.json({ error: 'Missing target URL' }, { status: 400 });
     }
+
+    console.log(`[Walrus Node Proxy] Forwarding ${request.method} request to: ${targetUrl}`);
 
     // 1. Copy headers from incoming client request, removing host-specific ones
     const headers: Record<string, string> = {};
@@ -97,9 +99,15 @@ async function handleProxy(request: NextRequest) {
     // 2. Read request body as Buffer
     const bodyBuffer = await request.arrayBuffer();
     const body = bodyBuffer.byteLength > 0 ? Buffer.from(bodyBuffer) : undefined;
+    console.log(`[Walrus Node Proxy] Request body length: ${bodyBuffer.byteLength} bytes`);
 
     // 3. Forward request using Node's standard module (specifically disabling TLS check)
     const proxyResponse = await requestWithNode(targetUrl, request.method, headers, body);
+    console.log(`[Walrus Node Proxy] Target responded with status: ${proxyResponse.status}`);
+
+    if (proxyResponse.status >= 400) {
+      console.warn(`[Walrus Node Proxy] Error response body:`, proxyResponse.body.toString('utf8').slice(0, 500));
+    }
 
     // 4. Copy response headers, ensuring CORS is enabled
     const responseHeaders: Record<string, string> = {
@@ -117,7 +125,7 @@ async function handleProxy(request: NextRequest) {
       headers: responseHeaders,
     });
   } catch (error) {
-    console.error('[Walrus Node Proxy] Error:', error);
+    console.error(`[Walrus Node Proxy] Error proxying to ${targetUrl}:`, error);
     return NextResponse.json(
       { error: 'Failed to proxy request to Walrus node', details: error instanceof Error ? error.message : String(error) },
       { status: 502 }
