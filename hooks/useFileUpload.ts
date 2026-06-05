@@ -137,17 +137,22 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
     }
     if (acceptedFiles.length === 0) return;
 
-    const total = acceptedFiles.reduce((sum, f) => sum + f.size, 0);
+    // Merge with existing files instead of replacing
+    const newSelected: SelectedFile[] = [
+      ...filesRef.current,
+      ...acceptedFiles.map((f) => ({ file: f, progress: 0 })),
+    ];
+    const total = newSelected.reduce((sum, s) => sum + s.file.size, 0);
+
     if (total > MAX_TOTAL_SIZE) {
       setError(`Too much data. Max ${formatFileSize(MAX_TOTAL_SIZE)} total.`);
       return;
     }
 
-    const selected: SelectedFile[] = acceptedFiles.map((f) => ({ file: f, progress: 0 }));
-    filesRef.current = selected;
-    setFileInfos(selected.map((s) => ({ name: s.file.name, size: s.file.size })));
+    filesRef.current = newSelected;
+    setFileInfos(newSelected.map((s) => ({ name: s.file.name, size: s.file.size })));
     setTotalSize(total);
-    setSingleFile(acceptedFiles.length === 1 ? acceptedFiles[0] : null);
+    setSingleFile(newSelected.length === 1 ? newSelected[0].file : null);
     setShareLink(null);
     setStep('selected');
     setError(null);
