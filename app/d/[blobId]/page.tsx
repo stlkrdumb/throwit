@@ -68,18 +68,8 @@ export default function DownloadPage({
         );
         const plaintext = await decryptFile(ciphertext, key, ivBytes);
 
-        // Trigger download
-        const blob = new Blob([plaintext]);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = parsed.filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        setState('done');
+        // Trigger download (brief delay lets the browser actually start it)
+        setTimeout(() => setState('done'), 400);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Download failed.');
         setState('error');
@@ -173,8 +163,16 @@ export default function DownloadPage({
             </div>
           </div>
 
-          <p className="text-sm font-medium text-slate-200 text-center">File downloaded!</p>
-          <p className="text-xs text-slate-500 text-center mt-1">{parsed?.filename}</p>
+          <p className="text-sm font-medium text-slate-200 text-center">Saved to downloads</p>
+          <p className="text-xs text-slate-500 text-center mt-1 truncate max-w-[260px] mx-auto">{parsed?.filename}</p>
+
+          {/* Retry button */}
+          <button
+            onClick={() => setState('fetching')}
+            className="mt-4 px-4 py-2 rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 text-xs text-slate-400 hover:text-slate-200 transition-colors"
+          >
+            Download Again
+          </button>
         </div>
       </div>
     );
