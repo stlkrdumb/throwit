@@ -1,6 +1,6 @@
 'use client';
 
-import { FileLock, BadgeCheck, CloudUpload, ShieldCheck, CloudCheck } from 'lucide-react';
+import { FileLock, Wallet, CloudUpload, ShieldCheck, CloudCheck } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useUploadContext } from '../context';
 
@@ -17,7 +17,7 @@ function classifyStage(msg: string): UploadStage {
 
 const stageIcons: Record<UploadStage, React.ReactNode> = {
   encrypting: <FileLock className="h-6 w-6 text-emerald-400" />,
-  registering: <BadgeCheck className="h-6 w-6 text-emerald-400" />,
+  registering: <Wallet className="h-6 w-6 text-emerald-400" />,
   uploading: <CloudUpload className="h-6 w-6 text-emerald-400" />,
   certifying: <ShieldCheck className="h-6 w-6 text-emerald-400" />,
   confirming: <CloudCheck className="h-6 w-6 text-emerald-400" />,
