@@ -3,20 +3,8 @@
 import { use, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Download, Check, X, AlertCircle } from 'lucide-react';
-import { downloadBlob } from '@/lib/walrus';
+import { downloadBlob, downloadFromTatumUrl, parseShareLinkSource } from '@/lib/walrus';
 import { decryptFile, importKey } from '@/lib/crypto';
-
-function parseShareLink(hash: string) {
-  const clean = hash.replace(/^#/, '');
-  const parts = clean.split('.');
-  if (parts.length < 3) return null;
-  const [key, iv, ...filenameParts] = parts;
-  return {
-    key,
-    iv,
-    filename: decodeURIComponent(filenameParts.join('.')),
-  };
-}
 
 type State = 'init' | 'fetching' | 'decrypting' | 'done' | 'error' | 'cancelled';
 
@@ -27,7 +15,7 @@ export default function DownloadPage({
 }) {
   const { blobId } = use(params);
   const [state, setState] = useState<State>('init');
-  const [parsed, setParsed] = useState<ReturnType<typeof parseShareLink>>(null);
+  const [parsed, setParsed] = useState<ReturnType<typeof parseShareLinkSource>>(null);
   const [error, setError] = useState<string>('');
 
   const isExecutable = (() => {
@@ -40,7 +28,12 @@ export default function DownloadPage({
   // Parse link on mount
   if (state === 'init' && !parsed) {
     try {
-      const parsedData = parseShareLink(window.location.hash);
+      // Use base URL without hash for parsing
+      const baseUrl = `${window.location.origin}${window.location.pathname}`;
+      const hash = window.location.hash;
+      console.log('[Download] Base URL:', baseUrl);
+      console.log('[Download] Hash:', hash);
+      const parsedData = parseShareLinkSource(hash, baseUrl);
       setParsed(parsedData);
       if (!parsedData) {
         setState('error');
@@ -52,13 +45,26 @@ export default function DownloadPage({
     }
   }
 
-  // Fetch & decrypt
+  // Fetch & decrypt - handles both Tatum and Walrus sources
   const startDownload = async () => {
     if (!parsed) return;
     setState('fetching');
 
     try {
-      const ciphertext = await downloadBlob(blobId);
+      let ciphertext: Uint8Array;
+
+      if (parsed.source === 'tatum') {
+        // Download from Tatum Storage API URL
+        if (!parsed.downloadUrl) throw new Error('Missing download URL');
+        console.log('[Download] Fetching from Tatum:', parsed.downloadUrl);
+        ciphertext = await downloadFromTatumUrl(parsed.downloadUrl);
+      } else {
+        // Download from Walrus aggregator via blobId
+        if (!parsed.blobId) throw new Error('Missing blob ID');
+        console.log('[Download] Fetching from Walrus:', parsed.blobId);
+        ciphertext = await downloadBlob(parsed.blobId);
+      }
+
       setState('decrypting');
 
       const key = await importKey(parsed.key);
@@ -144,7 +150,11 @@ export default function DownloadPage({
         <div className="w-full max-w-sm text-center">
           <p className="text-sm font-black uppercase tracking-wider text-foreground">Download Cancelled</p>
           <button
-            onClick={() => { setState('init'); setParsed(parseShareLink(window.location.hash) || null); }}
+            onClick={() => {
+              const baseUrl = `${window.location.origin}${window.location.pathname}`;
+              setState('init');
+              setParsed(parseShareLinkSource(window.location.hash, baseUrl) || null);
+            }}
             className="mt-3 px-4 py-2.5 rounded-[4px] border-3 border-black bg-primary text-primary-foreground shadow-[3px_3px_0_var(--color-primary)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[5px_5px_0_var(--color-primary)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_var(--color-primary)] text-xs font-black uppercase tracking-wider transition-all duration-100 cursor-pointer"
           >
             Try Again

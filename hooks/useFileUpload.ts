@@ -11,7 +11,14 @@ import {
 import { toast } from 'sonner';
 import { generateKey, encryptFile, exportKey } from '@/lib/crypto';
 import { getWalrusWriteClient } from '@/lib/walrus';
-import { config } from '@/lib/config';
+import {
+  uploadToStorage,
+  waitForUploadCertified,
+  listUploads,
+  cancelUploadRenewal,
+  instantDeleteUpload,
+} from '@/lib/storage';
+import { config, getStorageApiKey } from '@/lib/config';
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB per file
 const MAX_TOTAL_SIZE = 500 * 1024 * 1024; // 500 MB total
@@ -217,47 +224,161 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
         finalIv = encResult.iv;
       }
 
-      setProgress(30);
-      setProgressMessage('Uploading to Walrus…');
+      // Check storage provider (mainnet uses Tatum Storage, testnet uses Walrus client)
+      const isTatumMode = config.network === 'mainnet';
 
-      const client = getWalrusWriteClient();
-      const epochs = hoursToEpochs(selectedHours);
-      const flow = client.writeBlobFlow({ blob: dataToUpload });
-      const encoded = await flow.encode();
-      const blobId = encoded.blobId;
+      if (isTatumMode) {
+        // ─── TATUM STORAGE MODE ──────────────────────────────────────────────
+        // Upload encrypted file to Tatum Storage API (handles Walrus on-chain)
+        setProgressMessage('Uploading to Tatum Storage…');
 
-      setProgress(50);
-      setProgressMessage('Registering on-chain…');
-      const regTx = flow.register({ epochs, deletable: true, owner: account.address });
-      toast.info('Approve registration in your wallet…');
-      const regResult = await dAppKit.signAndExecuteTransaction({ transaction: regTx });
-      if (regResult.FailedTransaction) throw new Error(regResult.FailedTransaction.status.error?.message ?? 'Registration failed.');
-      await suiClient!.waitForTransaction({ digest: regResult.Transaction.digest });
+        // Create a Blob from the encrypted data for Tatum upload
+        const encryptedBlob = new Blob(
+          [dataToUpload.buffer as ArrayBuffer || dataToUpload],
+          { type: 'application/octet-stream' },
+        );
+        const uploadFile = new File(
+          [encryptedBlob],
+          isPack ? 'throwit-pack.zip' : filesRef.current[0].file.name,
+          { type: encryptedBlob.type },
+        );
 
-      setProgress(75);
-      setProgressMessage('Uploading slivers…');
-      await flow.upload({ digest: regResult.Transaction.digest });
+        const apiKey = getStorageApiKey();
+        if (!apiKey) {
+          throw new Error('Storage API key not found. Please configure your Tatum API key.');
+        }
 
-      setProgressMessage('Certifying on-chain…');
-      setProgress(90);
-      toast.info('Approve certification in your wallet…');
-      const certTx = flow.certify();
-      const certResult = await dAppKit.signAndExecuteTransaction({ transaction: certTx });
-      if (certResult.FailedTransaction) throw new Error(certResult.FailedTransaction.status.error?.message ?? 'Certification failed.');
-      await suiClient!.waitForTransaction({ digest: certResult.Transaction.digest });
+        // Step 1: Upload to Tatum (async certification)
+        setProgress(30);
+        const uploadResult = await uploadToStorage(uploadFile, apiKey);
+        const { blobId: tatumBlobId, jobId } = uploadResult;
 
-      const blobObjectId = (await flow.getBlob()).blobObjectId;
+        if (!jobId) {
+          throw new Error('Upload failed: no jobId returned');
+        }
 
-      // Export key + build share link
-      setProgressMessage('Finalizing…');
-      const keyB64 = await exportKey(encryptionKey);
-      const ivB64 = btoa(String.fromCharCode(...finalIv))
-        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        setProgress(40);
+        setProgressMessage('Waiting for Walrus certification…');
 
-      const realFilename = isPack ? 'throwit-pack.zip' : filesRef.current[0].file.name;
-      setShareLink(`${config.appUrl}/d/${blobId}#${keyB64}.${ivB64}.${encodeURIComponent(realFilename)}`);
+        // Step 2: Poll until CERTIFIED (Tatum handles all on-chain txs automatically)
+        const certResult = await waitForUploadCertified(
+          jobId,
+          apiKey,
+          (status) => {
+            switch (status) {
+              case 'PENDING':
+                setProgressMessage('File staged, waiting for Walrus worker…');
+                setProgress(50);
+                break;
+              case 'UPLOADING':
+                setProgressMessage('Uploading to Walrus nodes…');
+                setProgress(65);
+                break;
+              case 'CERTIFIED':
+                setProgress(90);
+                break;
+              default:
+                break;
+            }
+          },
+        );
 
-      // Save metadata
+        // Use Tatum's download URL (already has the blobId embedded)
+        const tatumDownloadUrl = certResult.downloadUrlByQuiltId || certResult.downloadUrlByQuiltPatchId;
+        if (!tatumDownloadUrl) {
+          throw new Error('Certified but missing download URL');
+        }
+
+          // Export key + build share link (Tatum mode uses Tatum's download URL)
+        const keyB64 = await exportKey(encryptionKey);
+        const ivB64 = btoa(String.fromCharCode(...finalIv))
+          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+        // Store Tatum download URL for later retrieval
+        const tatumStorageKey = `throwit_tatum_download_${tatumBlobId}`;
+        localStorage.setItem(tatumStorageKey, JSON.stringify({
+          downloadUrl: tatumDownloadUrl,
+          jobId,
+          status: 'CERTIFIED',
+          savedAt: Date.now(),
+        }));
+
+        // Build share link using our app URL format (always goes through /d/[blobId])
+        const realFilename = isPack ? 'throwit-pack.zip' : filesRef.current[0].file.name;
+        setShareLink(`${config.appUrl}/d/${tatumBlobId}#${keyB64}.${ivB64}.${encodeURIComponent(realFilename)}`);
+
+        // Save metadata (Tatum mode uses Tatum's blobId)
+        const tatumUpload: UploadedFileMeta = {
+          blobId: tatumBlobId,
+          blobObjectId: '', // Tatum manages on-chain storage
+          filename: realFilename,
+          size: totalSize,
+          uploadedAt: Date.now(),
+          keyB64,
+          ivB64,
+          zipMeta: isPack ? {
+            isPack: true,
+            entryCount: filesRef.current.length,
+            entries: filesRef.current.map((f) => ({ name: f.file.name, size: f.file.size })),
+          } : undefined,
+        };
+
+        if (onSave) onSave(tatumUpload);
+        else {
+          const key = `throwit_uploads_${account.address}`;
+          const list = JSON.parse(localStorage.getItem(key) || '[]');
+          list.unshift(tatumUpload); localStorage.setItem(key, JSON.stringify(list));
+        }
+
+        if (onNotifySuccess) onNotifySuccess();
+        else window.dispatchEvent(new Event('throwit_upload_success'));
+
+        setProgress(100);
+        setStep('done');
+        toast.success(isPack ? `${filesRef.current.length} files packed & uploaded via Tatum!` : 'Uploaded to Tatum Storage!');
+      } else {
+        // ─── WALRUS CLIENT MODE (testnet / direct) ───────────────────────────
+        setProgressMessage('Uploading to Walrus…');
+
+        const client = getWalrusWriteClient();
+        const epochs = hoursToEpochs(selectedHours);
+        const flow = client.writeBlobFlow({ blob: dataToUpload });
+        const encoded = await flow.encode();
+        const blobId = encoded.blobId;
+
+        setProgress(50);
+        setProgressMessage('Registering on-chain…');
+        const regTx = flow.register({ epochs, deletable: true, owner: account.address });
+        toast.info('Approve registration in your wallet…');
+        const regResult = await dAppKit.signAndExecuteTransaction({ transaction: regTx });
+        if (regResult.FailedTransaction) throw new Error(regResult.FailedTransaction.status.error?.message ?? 'Registration failed.');
+        await suiClient!.waitForTransaction({ digest: regResult.Transaction.digest });
+
+        setProgress(75);
+        setProgressMessage('Uploading slivers…');
+        await flow.upload({ digest: regResult.Transaction.digest });
+
+        setProgressMessage('Certifying on-chain…');
+        setProgress(90);
+        toast.info('Approve certification in your wallet…');
+        const certTx = flow.certify();
+        const certResult = await dAppKit.signAndExecuteTransaction({ transaction: certTx });
+      
+        if (certResult.FailedTransaction) throw new Error(certResult.FailedTransaction.status.error?.message ?? 'Certification failed.');
+        await suiClient!.waitForTransaction({ digest: certResult.Transaction.digest });
+
+        const blobObjectId = (await flow.getBlob()).blobObjectId;
+
+        // Export key + build share link
+        setProgressMessage('Finalizing…');
+        const keyB64 = await exportKey(encryptionKey);
+        const ivB64 = btoa(String.fromCharCode(...finalIv))
+          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+        const realFilename = isPack ? 'throwit-pack.zip' : filesRef.current[0].file.name;
+        setShareLink(`${config.appUrl}/d/${blobId}#${keyB64}.${ivB64}.${encodeURIComponent(realFilename)}`);
+
+        // Save metadata
       const upload: UploadedFileMeta = {
         blobId,
         blobObjectId,
@@ -280,12 +401,13 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
         list.unshift(upload); localStorage.setItem(key, JSON.stringify(list));
       }
 
-      if (onNotifySuccess) onNotifySuccess();
-      else window.dispatchEvent(new Event('throwit_upload_success'));
+        if (onNotifySuccess) onNotifySuccess();
+        else window.dispatchEvent(new Event('throwit_upload_success'));
 
-      setProgress(100);
-      setStep('done');
-      toast.success(isPack ? `${filesRef.current.length} files packed & uploaded!` : 'Uploaded and encrypted!');
+        setProgress(100);
+        setStep('done');
+        toast.success(isPack ? `${filesRef.current.length} files packed & uploaded!` : 'Uploaded and encrypted!');
+      }
     } catch (err) {
       console.error('Upload error:', err);
       setError(err instanceof Error ? err.message : 'Upload failed.');

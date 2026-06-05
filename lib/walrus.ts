@@ -60,3 +60,91 @@ export async function downloadBlob(blobId: string): Promise<Uint8Array> {
   const client = getWalrusReadClient();
   return new Uint8Array(await client.readBlob({ blobId }));
 }
+
+/**
+ * Download encrypted file from Tatum Storage API download URL.
+ * Tatum returns the fully-certified blob ready for decryption.
+ */
+export async function downloadFromTatumUrl(downloadUrl: string): Promise<Uint8Array> {
+  const response = await fetch(downloadUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to download from Tatum: ${response.status}`);
+  }
+  return new Uint8Array(await response.arrayBuffer());
+}
+
+/**
+ * Retrieve cached Tatum download URL for a blob.
+ */
+export function getTatumDownloadUrl(blobId: string): string | null {
+  if (typeof window === 'undefined') return null;
+  
+  const storageKey = `throwit_tatum_download_${blobId}`;
+  const stored = localStorage.getItem(storageKey);
+  if (!stored) return null;
+  
+  try {
+    const data = JSON.parse(stored);
+    // Return URL only if certified
+    if (data.status === 'CERTIFIED' && data.downloadUrl) {
+      return data.downloadUrl;
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  
+  return null;
+}
+
+/**
+ * Parse a share link to determine source (Tatum or Walrus) and extract data.
+ * Format:
+ *   - Always: {appUrl}/d/{blobId}#{keyB64}.{ivB64}.{filename}
+ */
+export function parseShareLinkSource(
+  hash: string,
+  baseUrl: string,
+): {
+  source: 'walrus' | 'tatum';
+  blobId: string;
+  downloadUrl?: string;
+  key: string;
+  iv: string;
+  filename: string;
+} | null {
+  const clean = hash.replace(/^#/, '');
+  const parts = clean.split('.');
+  if (parts.length < 3) return null;
+
+  const [key, iv, ...filenameParts] = parts;
+  const filename = decodeURIComponent(filenameParts.join('.'));
+
+  // Extract blobId from path - always expects /d/{blobId} format
+  const urlPath = baseUrl.replace(/^.*\/d\//, '');
+  if (!urlPath || urlPath.includes('/')) return null;
+
+  const blobId = urlPath;
+
+  // Check if we have a cached Tatum download URL for this blob
+  const tatumUrl = getTatumDownloadUrl(blobId);
+  
+  if (tatumUrl) {
+    return {
+      source: 'tatum',
+      blobId,
+      downloadUrl: tatumUrl,
+      key,
+      iv,
+      filename,
+    };
+  }
+
+  // Otherwise it's walrus direct link
+  return {
+    source: 'walrus',
+    blobId,
+    key,
+    iv,
+    filename,
+  };
+}
