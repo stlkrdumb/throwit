@@ -384,7 +384,23 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
 
         setProgress(75);
         setProgressMessage('Uploading slivers…');
-        await flow.upload({ digest: regResult.Transaction.digest });
+        
+        let uploadSuccess = false;
+        let attempts = 0;
+        while (!uploadSuccess && attempts < 3) {
+          try {
+            attempts++;
+            await flow.upload({ digest: regResult.Transaction.digest });
+            uploadSuccess = true;
+          } catch (uploadErr) {
+            console.warn(`Sliver upload attempt ${attempts} failed:`, uploadErr);
+            if (attempts >= 3) {
+              throw uploadErr;
+            }
+            setProgressMessage(`Waiting for indexer sync (attempt ${attempts}/3)…`);
+            await new Promise((resolve) => setTimeout(resolve, 2500));
+          }
+        }
 
         setProgressMessage('Certifying on-chain…');
         setProgress(90);
