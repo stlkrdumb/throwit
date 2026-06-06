@@ -16,7 +16,7 @@ import { FileInfoRow } from '../components/file-info';
 
 export function CompleteState() {
   const { state, actions } = useUploadContext();
-  const { fileInfos, shareLink, copied } = state;
+  const { fileInfos, shareLink, copied, finalFilename, totalSize } = state;
   const { handleCopy, resetUpload } = actions;
   const [qrOpen, setQrOpen] = useState(false);
 
@@ -38,9 +38,11 @@ export function CompleteState() {
       </div>
 
       {/* File info */}
-      {fileInfos.length > 0 && (
+      {finalFilename ? (
+        <FileInfoRow name={finalFilename} size={totalSize} variant="success" />
+      ) : fileInfos.length > 0 ? (
         <FileInfoRow name={fileInfos[0].name} size={fileInfos[0].size} variant="success" />
-      )}
+      ) : null}
 
       {/* Share link — neo-input style */}
       <div className="flex gap-2">

@@ -8,7 +8,7 @@ import { RecoveryPanel } from '../components/recovery-panel';
 
 export function ErrorState() {
   const { state, actions } = useUploadContext();
-  const { fileInfos, error, errorType } = state;
+  const { fileInfos, error, errorType, finalFilename, totalSize } = state;
   const { retryUpload, resetUpload } = actions;
 
   if (!error) return null;
@@ -26,9 +26,11 @@ export function ErrorState() {
         </div>
       </div>
 
-      {fileInfos.length > 0 && (
+      {finalFilename ? (
+        <FileInfoRow name={finalFilename} size={totalSize} variant="error" />
+      ) : fileInfos.length > 0 ? (
         <FileInfoRow name={fileInfos[0].name} size={fileInfos[0].size} variant="error" />
-      )}
+      ) : null}
 
       {error && (
         <>

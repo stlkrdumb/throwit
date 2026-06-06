@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock3, Trash2 } from 'lucide-react';
+import { Clock3, Trash2, FolderArchive } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EXPIRY_OPTIONS, ExpiryOption, formatFileSize } from '@/hooks/useFileUpload';
 import { useUploadContext } from '../context';
@@ -12,8 +12,8 @@ export function ReadyState() {
   const { state, actions } = useUploadContext();
   const account = useCurrentAccount();
   const { authMode, apiKeyConfigured } = useAuth();
-  const { fileInfos, totalSize, selectedHours } = state;
-  const { setSelectedHours, executeUpload, removeFile } = actions;
+  const { fileInfos, totalSize, selectedHours, customZipName } = state;
+  const { setSelectedHours, executeUpload, removeFile, setCustomZipName } = actions;
 
   if (!fileInfos || fileInfos.length === 0) return null;
 
@@ -54,6 +54,28 @@ export function ReadyState() {
         </span>
         <span className="font-mono font-black text-foreground">{formatFileSize(totalSize)}</span>
       </div>
+
+      {/* Custom ZIP Name input (only for packs) */}
+      {fileInfos.length > 1 && (
+        <div className="space-y-1.5 my-2">
+          <label className="text-xs font-black uppercase tracking-wide text-foreground flex items-center gap-1.5">
+            <FolderArchive className="h-3.5 w-3.5 text-secondary" />
+            ZIP Bundle Name
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              value={customZipName}
+              onChange={(e) => setCustomZipName(e.target.value)}
+              placeholder="throwit-pack"
+              className="w-full h-10 px-3 pr-10 rounded-[4px] border-2 border-black bg-muted text-xs font-mono outline-none focus:ring-1 focus:ring-primary text-foreground"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-muted-foreground select-none">
+              .zip
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Expiry */}
       <div className="space-y-2">

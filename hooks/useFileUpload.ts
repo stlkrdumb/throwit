@@ -101,6 +101,10 @@ export interface UseFileUploadReturn {
   copied: boolean;
   setCopied: React.Dispatch<React.SetStateAction<boolean>>;
 
+  customZipName: string;
+  setCustomZipName: React.Dispatch<React.SetStateAction<string>>;
+  finalFilename: string | null;
+
   getRootProps: ReturnType<typeof useDropzone>['getRootProps'];
   getInputProps: ReturnType<typeof useDropzone>['getInputProps'];
   isDragActive: boolean;
@@ -132,6 +136,8 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
   const [error, setError] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<UploadErrorType>('unknown');
   const [copied, setCopied] = useState(false);
+  const [customZipName, setCustomZipName] = useState('throwit-pack');
+  const [finalFilename, setFinalFilename] = useState<string | null>(null);
 
   // --- Dropzone ---
   const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -200,8 +206,16 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
       let finalIv: Uint8Array;
       let encryptionKey: CryptoKey;
 
+      let zipFilename = 'throwit-pack.zip';
       if (isPack) {
-        setProgressMessage(`Packing ${filesRef.current.length} files into ZIP…`);
+        let name = customZipName.trim();
+        if (!name) name = 'throwit-pack';
+        if (!name.endsWith('.zip')) name += '.zip';
+        zipFilename = name;
+      }
+
+      if (isPack) {
+        setProgressMessage(`Packing ${filesRef.current.length} files into ${zipFilename}…`);
         setProgress(5);
 
         // Pack all original files into ZIP
@@ -249,7 +263,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
         );
         const uploadFile = new File(
           [encryptedBlob],
-          isPack ? 'throwit-pack.zip' : filesRef.current[0].file.name,
+          isPack ? zipFilename : filesRef.current[0].file.name,
           { type: encryptedBlob.type },
         );
 
@@ -314,8 +328,9 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
         }));
 
         // Build share link using our app URL format (always goes through /d/[blobId])
-        const realFilename = isPack ? 'throwit-pack.zip' : filesRef.current[0].file.name;
+        const realFilename = isPack ? zipFilename : filesRef.current[0].file.name;
         setShareLink(`${config.appUrl}/d/${tatumBlobId}#${keyB64}.${ivB64}.${encodeURIComponent(realFilename)}`);
+        setFinalFilename(realFilename);
 
         // Save metadata (Tatum mode uses Tatum's blobId)
         const tatumUpload: UploadedFileMeta = {
@@ -388,8 +403,9 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
         const ivB64 = btoa(String.fromCharCode(...finalIv))
           .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
-        const realFilename = isPack ? 'throwit-pack.zip' : filesRef.current[0].file.name;
+        const realFilename = isPack ? zipFilename : filesRef.current[0].file.name;
         setShareLink(`${config.appUrl}/d/${blobId}#${keyB64}.${ivB64}.${encodeURIComponent(realFilename)}`);
+        setFinalFilename(realFilename);
 
         // Save metadata
       const upload: UploadedFileMeta = {
@@ -459,12 +475,15 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
     setProgress(0);
     setProgressMessage('');
     setCopied(false);
+    setCustomZipName('throwit-pack');
+    setFinalFilename(null);
   }, []);
 
   return {
     fileInfos, totalSize, singleFile,
     step, setStep, selectedHours, setSelectedHours, shareLink,
     progress, progressMessage, error, errorType, copied, setCopied,
+    customZipName, setCustomZipName, finalFilename,
     getRootProps, getInputProps, isDragActive,
     executeUpload, retryUpload, handleCopy, resetUpload, removeFile,
   };

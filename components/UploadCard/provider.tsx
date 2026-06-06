@@ -31,6 +31,9 @@ export function UploadProvider({ children, onSave }: UploadProviderProps) {
     getRootProps,
     getInputProps,
     isDragActive,
+    customZipName,
+    setCustomZipName,
+    finalFilename,
   } = useFileUpload({ onSave });
 
   const state: UploadState = {
@@ -45,6 +48,8 @@ export function UploadProvider({ children, onSave }: UploadProviderProps) {
     errorType,
     copied,
     isDragActive,
+    customZipName,
+    finalFilename,
   };
 
   const actions: UploadActions = {
@@ -55,6 +60,7 @@ export function UploadProvider({ children, onSave }: UploadProviderProps) {
     handleCopy,
     resetUpload,
     removeFile,
+    setCustomZipName,
   };
 
   const meta: UploadMeta = {

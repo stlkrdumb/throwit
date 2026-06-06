@@ -18,6 +18,8 @@ export interface UploadState {
   errorType: UploadErrorType;
   copied: boolean;
   isDragActive: boolean;
+  customZipName: string;
+  finalFilename: string | null;
 }
 
 export interface UploadActions {
@@ -28,6 +30,7 @@ export interface UploadActions {
   handleCopy: () => void;
   resetUpload: () => void;
   removeFile: (index: number) => void;
+  setCustomZipName: (name: string) => void;
 }
 
 export interface UploadMeta {
