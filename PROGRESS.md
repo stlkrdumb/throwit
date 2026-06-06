@@ -35,6 +35,7 @@
 ### UI Components (Neobrutalist Theme)
 | Component | Status | Notes |
 |-----------|--------|-------|
+| **Mobile Drawer** (`app/providers.tsx`) | ✅ Complete | Responsive hamburger drawer menu containing navigation, wallet login, and mobile Tatum settings. |
 | **shadcn/ui/button.tsx** | ✅ Complete | Neo-button system with shadow grow/press behaviors. |
 | **shadcn/ui/card.tsx** | ✅ Complete | 3px black border + hard shadow header/footer system. |
 | **shadcn/ui/dialog.tsx** | ✅ Complete | White neo-card overlay, solid backdrop. |
@@ -42,9 +43,9 @@
 | **shadcn/ui/tabs.tsx** | ✅ Complete | Black active tab (inverse), bold uppercase labels. |
 | **shadcn/ui/progress.tsx** | ✅ Complete | Pink fill in black-bordered track, rounded-sm. |
 | **WalletButton** (`components/WalletButton/`) | ✅ Complete | Dropdown trigger + connect wallet dialog. Neo-brutalist styling. |
-| **MyUploads** (`components/MyUploads/`) | ✅ Complete | File list strips with type colors, ZIP pack preview, delete action. |
+| **MyUploads** (`components/MyUploads/`) | ✅ Complete | File list strips with type colors, ZIP pack preview (inline accordion on mobile), delete action, responsive context action dropdowns. |
 | **LandingCTA** (`components/LandingCTA.tsx`) | ✅ Complete | CTA button + wallet connect dialog for landing page. |
-| **NetworkBanner** (`components/NetworkBanner.tsx`) | ✅ Complete | Bottom-bar auth-mode indicator. Fixed: now correctly nested inside `<AuthProvider>` so it reflects live `authMode` state from `LoginButton` (see 🐛 bug report below). |
+| **NetworkBanner** (`components/NetworkBanner.tsx`) | ✅ Complete | Bottom-bar auth-mode indicator. Hidden on mobile (`hidden md:flex`) with settings migrated into mobile header navigation drawer. |
 
 ### Design System
 | Token | Status | Notes |

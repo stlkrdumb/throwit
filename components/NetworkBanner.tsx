@@ -42,7 +42,7 @@ export function NetworkBanner() {
 
   if (!mounted) {
     return (
-      <footer className="fixed bottom-0 left-0 right-0 z-40 h-10 bg-card border-t-3 border-black flex items-center justify-between px-6 text-xs font-mono select-none">
+      <footer className="fixed bottom-0 left-0 right-0 z-40 h-10 bg-card border-t-3 border-black hidden md:flex items-center justify-between px-6 text-xs font-mono select-none">
         {/* Left: Auth Mode Status */}
         <div className="flex items-center gap-2 text-foreground font-semibold">
           <span className={`h-2 w-2 rounded-full border border-black shrink-0 ${
@@ -100,7 +100,7 @@ export function NetworkBanner() {
   // Show key input when toggled
   if (showKeyInput) {
     return (
-      <footer className="fixed bottom-0 left-0 right-0 z-40 h-10 bg-card border-t-3 border-black flex items-center justify-between px-6 text-xs font-mono select-none">
+      <footer className="fixed bottom-0 left-0 right-0 z-40 h-10 bg-card border-t-3 border-black hidden md:flex items-center justify-between px-6 text-xs font-mono select-none">
         <form onSubmit={handleSaveKey} className="flex items-center gap-2 w-full">
           <div className="flex items-center gap-2 text-foreground font-semibold">
             <span className="text-[10px] text-muted-foreground uppercase">CHANGE API KEY:</span>
@@ -143,7 +143,7 @@ export function NetworkBanner() {
 
   // Normal state with mode selector and API key button
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-40 h-10 bg-card border-t-3 border-black flex items-center justify-between px-6 text-xs font-mono select-none">
+    <footer className="fixed bottom-0 left-0 right-0 z-40 h-10 bg-card border-t-3 border-black hidden md:flex items-center justify-between px-6 text-xs font-mono select-none">
       {/* Left: Auth Mode Status */}
       <div className="flex items-center gap-2 text-foreground font-semibold">
         <span className={`h-2 w-2 rounded-full border border-black shrink-0 ${

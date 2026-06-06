@@ -115,10 +115,10 @@ export function LoginButton() {
     );
   } else if (account && walletStatus === 'connected') {
     trigger = (
-      <div className="relative" ref={menuRef}>
+      <div className="relative w-full md:w-auto" ref={menuRef}>
         <button
           onClick={() => setMenuOpen((o) => !o)}
-          className="inline-flex items-center gap-1.5 h-9 px-3 rounded-[4px] border-2 border-black bg-yellow-400 text-black font-bold uppercase text-xs cursor-pointer hover:bg-yellow-300 active:translate-x-[1px] active:translate-y-[1px] transition-all shadow-[2px_2px_0_var(--color-secondary)]"
+          className="inline-flex items-center justify-center gap-1.5 h-9 w-full md:w-auto px-3 rounded-[4px] border-2 border-black bg-yellow-400 text-black font-bold uppercase text-xs cursor-pointer hover:bg-yellow-300 active:translate-x-[1px] active:translate-y-[1px] transition-all shadow-[2px_2px_0_var(--color-secondary)]"
         >
           <CheckCircle className="h-4 w-4" />
           {account.address.slice(0, 6)}...{account.address.slice(-4)}
@@ -126,7 +126,7 @@ export function LoginButton() {
         </button>
 
         {menuOpen && (
-          <div className="absolute right-0 top-full mt-2 w-72 z-50 border-2 border-black bg-card shadow-[4px_4px_0_#000] rounded-[4px] overflow-hidden">
+          <div className="absolute md:absolute static right-0 md:right-0 top-full mt-2 w-full md:w-72 z-50 border-2 border-black bg-card shadow-[4px_4px_0_#000] rounded-[4px] overflow-hidden">
             {/* Header */}
             <div className="px-3 py-2 border-b-2 border-black bg-yellow-400 text-black">
               <div className="text-[9px] font-black uppercase tracking-wider opacity-80">Connected Wallet</div>
@@ -171,10 +171,10 @@ export function LoginButton() {
     );
   } else if (apiKeyConfigured && authMode === 'gasless') {
     trigger = (
-      <div className="relative" ref={menuRef}>
+      <div className="relative w-full md:w-auto" ref={menuRef}>
         <button
           onClick={() => setMenuOpen((o) => !o)}
-          className="inline-flex items-center gap-1.5 h-9 px-3 rounded-[4px] border-2 border-black bg-yellow-400 text-black font-bold uppercase text-xs cursor-pointer hover:bg-yellow-300 active:translate-x-[1px] active:translate-y-[1px] transition-all shadow-[2px_2px_0_var(--color-secondary)]"
+          className="inline-flex items-center justify-center gap-1.5 h-9 w-full md:w-auto px-3 rounded-[4px] border-2 border-black bg-yellow-400 text-black font-bold uppercase text-xs cursor-pointer hover:bg-yellow-300 active:translate-x-[1px] active:translate-y-[1px] transition-all shadow-[2px_2px_0_var(--color-secondary)]"
         >
           <Key className="h-4 w-4" />
           API KEY SET
@@ -182,7 +182,7 @@ export function LoginButton() {
         </button>
 
         {menuOpen && (
-          <div className="absolute right-0 top-full mt-2 w-72 z-50 border-2 border-black bg-card shadow-[4px_4px_0_#000] rounded-[4px] overflow-hidden">
+          <div className="absolute md:absolute static right-0 md:right-0 top-full mt-2 w-full md:w-72 z-50 border-2 border-black bg-card shadow-[4px_4px_0_#000] rounded-[4px] overflow-hidden">
             {/* Header */}
             <div className="px-3 py-2 border-b-2 border-black bg-yellow-400 text-black">
               <div className="text-[9px] font-black uppercase tracking-wider opacity-80">Tatum API Key</div>
@@ -229,7 +229,7 @@ export function LoginButton() {
     trigger = (
       <button
         onClick={() => setShowLoginDialog(true)}
-        className="inline-flex items-center gap-2 h-9 px-4 rounded-[4px] border-2 border-black bg-primary text-primary-foreground font-bold uppercase text-xs cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0_var(--color-primary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-primary)] transition-all shadow-[2px_2px_0_var(--color-primary)]"
+        className="inline-flex items-center justify-center gap-2 h-9 w-full md:w-auto px-4 rounded-[4px] border-2 border-black bg-primary text-primary-foreground font-bold uppercase text-xs cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0_var(--color-primary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-primary)] transition-all shadow-[2px_2px_0_var(--color-primary)]"
       >
         <Wallet className="h-4 w-4" />
         Login

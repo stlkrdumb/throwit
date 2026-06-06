@@ -5,7 +5,7 @@ import { useCurrentAccount, useDAppKit, useCurrentClient } from '@mysten/dapp-ki
 import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2, Copy, Check, ExternalLink, HardDrive, ShieldAlert, Loader2, X, Info, QrCode, FileImage, FileVideo, FileAudio2, FileArchive, FileCode, FileType, FileLock, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, Copy, Check, ExternalLink, HardDrive, ShieldAlert, Loader2, X, Info, QrCode, FileImage, FileVideo, FileAudio2, FileArchive, FileCode, FileType, FileLock, ChevronDown, ChevronUp, MoreVertical } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
@@ -89,6 +89,15 @@ export function MyUploads() {
   const [qrOpen, setQrOpen] = useState(false);
   const [qrItem, setQrItem] = useState<UploadItem | null>(null);
   const [expandedZip, setExpandedZip] = useState<number | null>(null);
+  const [activeMenuIndex, setActiveMenuIndex] = useState<number | null>(null);
+
+  // Click outside to close dropdown action menus
+  useEffect(() => {
+    if (activeMenuIndex === null) return;
+    const handleClick = () => setActiveMenuIndex(null);
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, [activeMenuIndex]);
 
   // Load history from localStorage
   const loadUploads = () => {
@@ -314,39 +323,157 @@ export function MyUploads() {
               const showEntries = isZip && expandedZip === index;
 
               return (
-                <div
-                  key={item.blobId}
-                  className="relative flex items-center justify-between gap-4 p-3.5 rounded-[4px] border-3 border-black bg-muted shadow-[4px_4px_0_var(--color-accent)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_var(--color-accent)] transition-all duration-100"
-                >
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    {/* File type icon */}
-                    <div className="h-9 w-9 rounded-[4px] border-2 border-black bg-card text-foreground shadow-[2px_2px_0_#000] flex items-center justify-center shrink-0">
-                      {fileType.icon}
+                <div key={item.blobId} className="relative flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-4 p-3.5 rounded-[4px] border-3 border-black bg-muted shadow-[4px_4px_0_var(--color-accent)] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0_var(--color-accent)] transition-all duration-100">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      {/* File type icon */}
+                      <div className="h-9 w-9 rounded-[4px] border-2 border-black bg-card text-foreground shadow-[2px_2px_0_#000] flex items-center justify-center shrink-0">
+                        {fileType.icon}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-foreground uppercase tracking-wide truncate">{item.filename}</p>
+                        <p className="text-xs font-mono text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5 flex-wrap">
+                          <span>{formatFileSize(item.size)}</span>
+                          <span>·</span>
+                          <span>{new Date(item.uploadedAt).toLocaleDateString()}</span>
+                          {isZip ? (
+                            <button
+                              type="button"
+                              onClick={() => setExpandedZip(expandedZip === index ? null : index)}
+                              className="text-primary hover:text-foreground font-black uppercase tracking-wider transition-colors inline-flex items-center gap-0.5 cursor-pointer underline"
+                            >
+                              {showEntries ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                              Contents
+                            </button>
+                          ) : null}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-foreground uppercase tracking-wide truncate">{item.filename}</p>
-                      <p className="text-xs font-mono text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5 flex-wrap">
-                        <span>{formatFileSize(item.size)}</span>
-                        <span>·</span>
-                        <span>{new Date(item.uploadedAt).toLocaleDateString()}</span>
-                        {isZip ? (
-                          <button
-                            type="button"
-                            onClick={() => setExpandedZip(expandedZip === index ? null : index)}
-                            className="text-primary hover:text-foreground font-black uppercase tracking-wider transition-colors inline-flex items-center gap-0.5 cursor-pointer underline"
-                          >
-                            {showEntries ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                            Contents
-                          </button>
-                        ) : null}
-                      </p>
+                    {/* Desktop Actions */}
+                    <div className="hidden md:flex items-center gap-1.5 shrink-0">
+                      {/* View on Explorer */}
+                      <a
+                        href={`https://walruscan.com/${config.network}/blob/${item.blobId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="h-8 w-8 rounded-[4px] border-2 border-black bg-card hover:bg-secondary flex items-center justify-center text-foreground hover:text-black shadow-[2px_2px_0_var(--color-primary)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_var(--color-primary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-primary)] transition-all cursor-pointer"
+                        title="View on Walrus Explorer"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+
+                      {/* Copy Link */}
+                      <button
+                        onClick={() => handleCopy(item, index)}
+                        className="h-8 w-8 rounded-[4px] border-2 border-black bg-card hover:bg-secondary flex items-center justify-center text-foreground hover:text-black shadow-[2px_2px_0_#B2FF59] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_#B2FF59] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_#B2FF59] transition-all cursor-pointer"
+                        title="Copy Share Link"
+                      >
+                        {copiedIndex === index ? (
+                          <Check className="h-3.5 w-3.5 text-green-600 font-bold" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+
+                      {/* QR Code */}
+                      <button
+                        onClick={() => { setQrItem(item); setQrOpen(true); }}
+                        className="h-8 w-8 rounded-[4px] border-2 border-black bg-card hover:bg-secondary flex items-center justify-center text-foreground hover:text-black shadow-[2px_2px_0_var(--color-primary)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_var(--color-primary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-primary)] transition-all cursor-pointer"
+                        title="Show QR Code"
+                      >
+                        <QrCode className="h-3.5 w-3.5" />
+                      </button>
+
+                      {/* Delete & Refund */}
+                      <button
+                        onClick={() => handleDelete(item, index)}
+                        disabled={deletingIndex !== null}
+                        className="h-8 w-8 rounded-[4px] border-2 border-black bg-card hover:bg-destructive hover:text-white flex items-center justify-center text-foreground shadow-[2px_2px_0_#FF5252] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_#FF5252] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_#FF5252] transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                        title="Delete file & reclaim WAL deposit"
+                      >
+                        {deletingIndex === index ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-destructive font-bold" />
+                        ) : (
+                          <Trash2 className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Mobile Actions Dropdown */}
+                    <div className="relative flex md:hidden shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveMenuIndex(activeMenuIndex === index ? null : index);
+                        }}
+                        className="h-8 w-8 rounded-[4px] border-2 border-black bg-card hover:bg-secondary flex items-center justify-center text-foreground hover:text-black shadow-[2px_2px_0_#000] cursor-pointer active:translate-x-[1px] active:translate-y-[1px] transition-all outline-none"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+
+                      {activeMenuIndex === index && (
+                        <div className="absolute right-0 top-full mt-1.5 w-44 z-20 border-2 border-black bg-card shadow-[4px_4px_0_#000] rounded-[4px] overflow-hidden">
+                          <div className="p-1 space-y-1">
+                            <a
+                              href={`https://walruscan.com/${config.network}/blob/${item.blobId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-2 py-1.5 text-xs font-bold uppercase rounded-[2px] hover:bg-muted text-foreground transition-colors cursor-pointer"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                              Explorer
+                            </a>
+
+                            <button
+                              onClick={() => handleCopy(item, index)}
+                              className="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-bold uppercase rounded-[2px] hover:bg-muted text-foreground transition-colors cursor-pointer text-left"
+                            >
+                              {copiedIndex === index ? (
+                                <>
+                                  <Check className="h-3.5 w-3.5 text-green-600 font-bold" />
+                                  Copied!
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="h-3.5 w-3.5" />
+                                  Copy Link
+                                </>
+                              )}
+                            </button>
+
+                            <button
+                              onClick={() => { setQrItem(item); setQrOpen(true); }}
+                              className="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-bold uppercase rounded-[2px] hover:bg-muted text-foreground transition-colors cursor-pointer text-left"
+                            >
+                              <QrCode className="h-3.5 w-3.5" />
+                              QR Code
+                            </button>
+
+                            <div className="h-px bg-border my-1" />
+
+                            <button
+                              onClick={() => handleDelete(item, index)}
+                              disabled={deletingIndex !== null}
+                              className="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-bold uppercase rounded-[2px] bg-red-500 hover:bg-red-600 text-white transition-colors cursor-pointer text-left disabled:opacity-50"
+                            >
+                              {deletingIndex === index ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin text-white font-bold" />
+                              ) : (
+                                <Trash2 className="h-3.5 w-3.5" />
+                              )}
+                              Delete File
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* ZIP contents popup */}
-                  {isZip && showEntries ? (
-                    <div className="absolute right-full mr-3 top-0 w-64 p-3 rounded-[4px] border-3 border-black bg-card shadow-[6px_6px_0_var(--color-accent)] z-10 text-foreground">
+                  {/* ZIP contents popup: absolute on desktop, inline/static accordion on mobile */}
+                  {isZip && showEntries && (
+                    <div className="absolute md:absolute static right-full md:right-full mr-0 md:mr-3 top-0 md:top-0 w-full md:w-64 p-3 rounded-[4px] border-3 border-black bg-card shadow-[4px_4px_0_var(--color-accent)] md:shadow-[6px_6px_0_var(--color-accent)] z-10 text-foreground">
                       <p className="text-xs font-black text-foreground uppercase tracking-wider mb-2">Contained Files</p>
                       <div className="space-y-1.5 max-h-48 overflow-y-auto">
                         {(getEntryList(item, account?.address || 'gasless') || []).map((e, ei) => (
@@ -358,56 +485,7 @@ export function MyUploads() {
                         ))}
                       </div>
                     </div>
-                  ) : null}
-
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {/* View on Explorer */}
-                    <a
-                      href={`https://walruscan.com/${config.network}/blob/${item.blobId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="h-8 w-8 rounded-[4px] border-2 border-black bg-card hover:bg-secondary flex items-center justify-center text-foreground hover:text-black shadow-[2px_2px_0_var(--color-primary)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_var(--color-primary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-primary)] transition-all cursor-pointer"
-                      title="View on Walrus Explorer"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-
-                    {/* Copy Link */}
-                    <button
-                      onClick={() => handleCopy(item, index)}
-                      className="h-8 w-8 rounded-[4px] border-2 border-black bg-card hover:bg-secondary flex items-center justify-center text-foreground hover:text-black shadow-[2px_2px_0_#B2FF59] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_#B2FF59] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_#B2FF59] transition-all cursor-pointer"
-                      title="Copy Share Link"
-                    >
-                      {copiedIndex === index ? (
-                        <Check className="h-3.5 w-3.5 text-green-600 font-bold" />
-                      ) : (
-                        <Copy className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-
-                    {/* QR Code */}
-                    <button
-                      onClick={() => { setQrItem(item); setQrOpen(true); }}
-                      className="h-8 w-8 rounded-[4px] border-2 border-black bg-card hover:bg-secondary flex items-center justify-center text-foreground hover:text-black shadow-[2px_2px_0_var(--color-primary)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_var(--color-primary)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_var(--color-primary)] transition-all cursor-pointer"
-                      title="Show QR Code"
-                    >
-                      <QrCode className="h-3.5 w-3.5" />
-                    </button>
-
-                    {/* Delete & Refund */}
-                    <button
-                      onClick={() => handleDelete(item, index)}
-                      disabled={deletingIndex !== null}
-                      className="h-8 w-8 rounded-[4px] border-2 border-black bg-card hover:bg-destructive hover:text-white flex items-center justify-center text-foreground shadow-[2px_2px_0_#FF5252] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0_#FF5252] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_#FF5252] transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
-                      title="Delete file & reclaim WAL deposit"
-                    >
-                      {deletingIndex === index ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin text-destructive font-bold" />
-                      ) : (
-                        <Trash2 className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-                  </div>
+                  )}
                 </div>
               );
             })
